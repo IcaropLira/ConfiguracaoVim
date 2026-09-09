@@ -3,6 +3,10 @@ syntax enable
 set termguicolors
 set background=dark
 
+" ============================================================
+" Vim Codeforces IDE
+" ============================================================
+
 " Editor
 set number
 set relativenumber
@@ -23,6 +27,7 @@ set wildmenu
 set wildmode=longest:full,full
 set cursorline
 set scrolloff=5
+set sidescrolloff=5
 set signcolumn=yes
 set updatetime=250
 set timeoutlen=500
@@ -32,14 +37,21 @@ set noswapfile
 set nowritebackup
 set laststatus=2
 set nolist
+set splitbelow
+set splitright
 
 " Theme
 colorscheme catppuccin
 
 " Modular configuration
-execute 'source ' . expand('<sfile>:p:h') . '/config/appearance.vim'
-execute 'source ' . expand('<sfile>:p:h') . '/config/cpp.vim'
-execute 'source ' . expand('<sfile>:p:h') . '/config/keymaps.vim'
+source ~/.vim/config/appearance.vim
+source ~/.vim/config/cpp.vim
+source ~/.vim/config/keymaps.vim
+source ~/.vim/config/explorer.vim
+source ~/.vim/config/search.vim
 
-" Clear search highlight on startup
-noh
+" Airline, when available
+if exists('g:loaded_airline')
+    let g:airline_powerline_fonts = 1
+    let g:airline_theme = 'catppuccin'
+endif
