@@ -1,6 +1,6 @@
 # Vim Codeforces / Java IDE — Configuração Ícaro Lira
 
-Configuração portátil de **Vim para programação competitiva e desenvolvimento em Java**, pensada principalmente para **Codeforces, OBI, maratonas, exercícios de algoritmos em C++ e Java**.
+Configuração portátil de **Vim para programação competitiva e desenvolvimento em Java**.
 
 A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, statusline, explorer em árvore com ícones, autocomplete tipo IDE (com toggle rápido), templates automáticos, compilação rápida, execução, testes com `input.txt`, terminal e atalhos para navegação.
 
@@ -11,12 +11,12 @@ A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, 
 ## Interface
 
 - Tema **Catppuccin**
-- `vim-airline` para uma statusline bonita, com indicador de autocomplete e créditozinho no canto
+- `vim-airline` para uma statusline bonita, com indicador de autocomplete
 - Números de linha (absoluto + relativo)
 - Linha atual destacada
 - Separadores de janelas estilizados
 - Winbar quando suportada pela versão do Vim
-- Menu de autocomplete (popup) estilizado combinando com o tema
+- Menu de autocomplete (popup) estilizado 
 - True Color
 - Mouse habilitado
 - Clipboard do sistema
