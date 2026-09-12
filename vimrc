@@ -1,10 +1,11 @@
 set nocompatible
+filetype plugin indent on
 syntax enable
 set termguicolors
 set background=dark
 
 " ============================================================
-" Vim Codeforces IDE
+" Vim Codeforces / Java IDE — Configuração Ícaro Lira
 " ============================================================
 
 " Editor
@@ -40,18 +41,27 @@ set nolist
 set splitbelow
 set splitright
 
-" Theme
-colorscheme catppuccin
+" ------------------------------------------------------------
+" Plugins (pacotes nativos do Vim, carregados em ordem controlada)
+" Cada 'packadd!' carrega o que foi clonado pelo install.sh em
+" ~/.vim/pack/plugins/opt/<nome>. Se um plugin não estiver
+" instalado, o packadd falha silenciosamente e o resto funciona.
+" ------------------------------------------------------------
+silent! packadd! catppuccin
+silent! packadd! vim-airline
+silent! packadd! vim-airline-themes
+silent! packadd! nerdtree
+silent! packadd! vim-devicons
+silent! packadd! coc.nvim
 
-" Modular configuration
+" Theme
+silent! colorscheme catppuccin
+
+" Configuração modular
 source ~/.vim/config/appearance.vim
-source ~/.vim/config/cpp.vim
-source ~/.vim/config/keymaps.vim
 source ~/.vim/config/explorer.vim
 source ~/.vim/config/search.vim
-
-" Airline, when available
-if exists('g:loaded_airline')
-    let g:airline_powerline_fonts = 1
-    let g:airline_theme = 'catppuccin'
-endif
+source ~/.vim/config/coc.vim
+source ~/.vim/config/cpp.vim
+source ~/.vim/config/java.vim
+source ~/.vim/config/keymaps.vim

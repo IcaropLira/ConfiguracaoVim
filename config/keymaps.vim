@@ -11,11 +11,8 @@ let g:loaded_my_keymaps = 1
 nnoremap <C-s> :write<CR>
 inoremap <C-s> <Esc>:write<CR>a
 
-" C++ / Codeforces
-nnoremap <F5> :call CompileCpp()<CR>
-nnoremap <F6> :call RunCpp()<CR>
-nnoremap <F7> :call BuildRunCpp()<CR>
-nnoremap <F8> :call TestCpp()<CR>
+" F5-F8 (compilar/executar/testar) são definidos por linguagem,
+" veja config/cpp.vim e config/java.vim (mapeamentos locais por filetype)
 
 " Terminal
 nnoremap <F9> :terminal<CR>
@@ -26,8 +23,11 @@ nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 nnoremap <C-l> <C-w>l
 
-" Explorer
-nnoremap <F2> :Explore<CR>
+" Explorer (NERDTree)
+nnoremap <F2> :NERDTreeToggle<CR>
+
+" Autocomplete: liga/desliga rápido (ver config/coc.vim)
+nnoremap <F4> :call ToggleAutocomplete()<CR>
 
 " Busca
 nnoremap <leader>h :nohlsearch<CR>

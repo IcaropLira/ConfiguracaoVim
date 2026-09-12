@@ -1,8 +1,8 @@
-# Vim Codeforces IDE
+# Vim Codeforces / Java IDE — Configuração Ícaro Lira
 
-Configuração portátil de **Vim para programação competitiva**, pensada principalmente para **Codeforces, OBI, maratonas e exercícios de algoritmos em C++**.
+Configuração portátil de **Vim para programação competitiva e desenvolvimento em Java**, pensada principalmente para **Codeforces, OBI, maratonas, exercícios de algoritmos em C++ e Java**.
 
-A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, statusline, explorer, template automático, compilação rápida, execução, testes com `input.txt`, terminal e atalhos para navegação.
+A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, statusline, explorer em árvore com ícones, autocomplete tipo IDE (com toggle rápido), templates automáticos, compilação rápida, execução, testes com `input.txt`, terminal e atalhos para navegação.
 
 ---
 
@@ -11,32 +11,42 @@ A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, 
 ## Interface
 
 - Tema **Catppuccin**
-- `vim-airline` para uma statusline bonita
-- Números de linha
-- Números relativos
+- `vim-airline` para uma statusline bonita, com indicador de autocomplete e créditozinho no canto
+- Números de linha (absoluto + relativo)
 - Linha atual destacada
 - Separadores de janelas estilizados
 - Winbar quando suportada pela versão do Vim
+- Menu de autocomplete (popup) estilizado combinando com o tema
 - True Color
 - Mouse habilitado
 - Clipboard do sistema
-- Interface otimizada para terminal
 
-## Programação competitiva
+## Explorer de arquivos (estilo IDE)
 
-- Template automático para `.cpp`
-- Compilação com:
+- `NERDTree` como painel lateral de arquivos, com `vim-devicons` (ícones por tipo de arquivo)
+- Atalho único (`F2`) pra abrir/fechar
+
+## Autocomplete "de verdade" (estilo IDE)
+
+- `coc.nvim` como motor de autocomplete (LSP), com suporte a Java via `coc-java`
+- Ir para definição, ver referências, documentação ao passar o cursor (`K`), renomear símbolo
+- **Liga/desliga com uma tecla** (`F4`), com indicador visual permanente na statusline mostrando se está ligado ou desligado
+
+## Programação competitiva / desenvolvimento
+
+- Template automático para `.cpp` e para `.java` (dois templates de Java: um "estilo IDE" e um de programação competitiva — veja seção 6)
+- Compilação C++ com:
 
 ```bash
 g++ -std=c++17 -O2 -Wall -Wextra
 ```
 
+- Compilação/execução Java com `javac`/`java`
 - Execução rápida
 - Compilar + executar com uma tecla
 - Teste automático usando `input.txt`
 - Terminal integrado
 - Navegação rápida entre janelas
-- Explorer nativo do Vim
 
 ---
 
@@ -82,15 +92,20 @@ Também cria automaticamente um backup do seu `.vimrc` anterior, caso exista.
 
 ---
 
-# 3. Se Vim, Git ou g++ não estiverem instalados
+# 3. Se Vim, Git, g++, JDK ou Node.js não estiverem instalados
 
 O projeto foi pensado para Linux.
+
+Além do Vim, Git e g++ (para C++), você também vai precisar de:
+
+- **JDK** (17 ou mais recente) — para compilar/executar Java e para o `coc-java` funcionar
+- **Node.js** — obrigatório para o `coc.nvim` (o motor de autocomplete). Sem Node.js, o autocomplete simplesmente não liga, mas o resto da configuração continua funcionando normalmente.
 
 ## Ubuntu / Debian / Linux Mint
 
 ```bash
 sudo apt update
-sudo apt install vim git g++
+sudo apt install vim git g++ default-jdk nodejs npm
 ```
 
 Depois confira:
@@ -99,6 +114,8 @@ Depois confira:
 vim --version
 git --version
 g++ --version
+javac --version
+node --version
 ```
 
 ---
@@ -106,7 +123,7 @@ g++ --version
 ## Fedora
 
 ```bash
-sudo dnf install vim git gcc-c++
+sudo dnf install vim git gcc-c++ java-17-openjdk-devel nodejs npm
 ```
 
 Confira:
@@ -115,6 +132,8 @@ Confira:
 vim --version
 git --version
 g++ --version
+javac --version
+node --version
 ```
 
 ---
@@ -122,7 +141,7 @@ g++ --version
 ## Arch Linux / Manjaro
 
 ```bash
-sudo pacman -S vim git gcc
+sudo pacman -S vim git gcc jdk-openjdk nodejs npm
 ```
 
 Confira:
@@ -131,6 +150,8 @@ Confira:
 vim --version
 git --version
 g++ --version
+javac --version
+node --version
 ```
 
 ---
@@ -144,9 +165,10 @@ Se você não quiser usar `install.sh`, pode instalar tudo manualmente.
 ```bash
 mkdir -p ~/.vim/config
 mkdir -p ~/.vim/templates
-mkdir -p ~/.vim/pack/themes/start
-mkdir -p ~/.vim/pack/plugins/start
+mkdir -p ~/.vim/pack/plugins/opt
 ```
+
+Repare que agora **todos** os plugins vão para `pack/plugins/opt` (não `start`). Isso é proposital: o `~/.vimrc` carrega cada um explicitamente com `packadd!`, na ordem certa (isso importa principalmente pro `vim-devicons`, que precisa carregar depois do NERDTree).
 
 ---
 
@@ -155,28 +177,56 @@ mkdir -p ~/.vim/pack/plugins/start
 ```bash
 git clone --depth 1 \
 https://github.com/catppuccin/vim.git \
-~/.vim/pack/themes/start/catppuccin
+~/.vim/pack/plugins/opt/catppuccin
 ```
 
 ---
 
-## 4.3 Instalar vim-airline
+## 4.3 Instalar vim-airline e temas
 
 ```bash
 git clone --depth 1 \
 https://github.com/vim-airline/vim-airline.git \
-~/.vim/pack/plugins/start/vim-airline
+~/.vim/pack/plugins/opt/vim-airline
+
+git clone --depth 1 \
+https://github.com/vim-airline/vim-airline-themes.git \
+~/.vim/pack/plugins/opt/vim-airline-themes
 ```
 
 ---
 
-## 4.4 Instalar temas do Airline
+## 4.4 Instalar NERDTree + ícones
 
 ```bash
 git clone --depth 1 \
-https://github.com/vim-airline/vim-airline-themes.git \
-~/.vim/pack/plugins/start/vim-airline-themes
+https://github.com/preservim/nerdtree.git \
+~/.vim/pack/plugins/opt/nerdtree
+
+git clone --depth 1 \
+https://github.com/ryanoasis/vim-devicons.git \
+~/.vim/pack/plugins/opt/vim-devicons
 ```
+
+**Importante:** para os ícones aparecerem (em vez de caixinhas), instale uma [Nerd Font](https://www.nerdfonts.com) e configure seu terminal para usá-la.
+
+---
+
+## 4.5 Instalar o motor de autocomplete (coc.nvim)
+
+```bash
+git clone --branch release --depth 1 \
+https://github.com/neoclide/coc.nvim.git \
+~/.vim/pack/plugins/opt/coc.nvim
+```
+
+Depois, dentro do vim, instale o suporte a Java:
+
+```vim
+:CocInstall coc-java
+```
+
+Na primeira vez que você abrir um `.java`, o `coc-java` baixa o Eclipse JDT Language Server — isso pode demorar um pouco e precisa de internet.
 
 ---
 
@@ -188,25 +238,29 @@ Depois da instalação:
 ~/.vim/
 ├── config/
 │   ├── appearance.vim
+│   ├── coc.vim
 │   ├── cpp.vim
+│   ├── java.vim
 │   ├── explorer.vim
 │   ├── keymaps.vim
 │   └── search.vim
 │
 ├── templates/
-│   └── cpp.cpp
+│   ├── cpp.cpp
+│   ├── java_main.java
+│   └── java_cp.java
 │
 └── pack/
-    ├── themes/
-    │   └── start/
-    │       └── catppuccin/
-    │
     └── plugins/
-        └── start/
+        └── opt/
+            ├── catppuccin/
             ├── vim-airline/
-            └── vim-airline-themes/
-│
-└── .vimrc
+            ├── vim-airline-themes/
+            ├── nerdtree/
+            ├── vim-devicons/
+            └── coc.nvim/
+
+~/.vimrc
 ```
 
 O arquivo principal é:
@@ -217,7 +271,7 @@ O arquivo principal é:
 
 ---
 
-# 6. Criando um problema novo
+# 6. Criando um problema novo (C++)
 
 Basta fazer:
 
@@ -262,9 +316,60 @@ int main() {
 
 ---
 
+# 6.1 Criando um problema novo (Java)
+
+Duas situações:
+
+## Template "estilo IDE" (padrão)
+
+```bash
+vim Solution.java
+```
+
+Gera automaticamente uma classe pública com o **mesmo nome do arquivo** (do jeito que uma IDE de verdade faz):
+
+```java
+public class Solution {
+
+    public static void main(String[] args) {
+
+    }
+}
+```
+
+## Template de programação competitiva
+
+Se o nome do arquivo terminar com `_cp` (antes do `.java`), o template muda para uma versão com entrada/saída rápida, pronta pra múltiplos casos de teste:
+
+```bash
+vim A_cp.java
+```
+
+```java
+import java.io.*;
+import java.util.*;
+
+class Main {
+    // ... leitura rápida com BufferedReader/StringTokenizer,
+    // loop de múltiplos casos de teste, método solve() pra você preencher
+}
+```
+
+Repare que essa classe **não é `public`**, de propósito: assim ela compila normalmente independente do nome do arquivo (`A_cp.java`, `B_cp.java`, etc. todos geram sempre a classe `Main`).
+
+Quer trocar o sufixo `_cp` por outra coisa? Edite a variável no topo de `~/.vim/config/java.vim`:
+
+```vim
+let g:java_cp_suffix = '_cp'
+```
+
+---
+
 # 7. Atalhos principais
 
-## C++
+## C++ e Java
+
+Os atalhos são os mesmos, mas cada um chama o compilador certo dependendo do arquivo aberto (`.cpp` usa `g++`, `.java` usa `javac`/`java`):
 
 | Tecla | Função |
 |---|---|
@@ -273,6 +378,21 @@ int main() {
 | `F7` | Compilar + executar |
 | `F8` | Compilar + executar com `input.txt` |
 | `F9` | Abrir terminal |
+
+## Autocomplete
+
+| Tecla | Função |
+|---|---|
+| `F4` | Liga/desliga o autocomplete (coc.nvim) |
+| `gd` | Ir para definição |
+| `gy` | Ir para definição do tipo |
+| `gr` | Ver referências |
+| `K` | Mostrar documentação do símbolo sob o cursor |
+| `<leader>rn` | Renomear símbolo |
+| `Tab` / `Shift+Tab` | Navegar nas sugestões (quando o menu de autocomplete está visível) |
+| `Enter` | Confirmar sugestão selecionada |
+
+Quando o autocomplete está ligado, a statusline mostra `● AC ON`; quando desligado, `○ AC OFF`.
 
 ---
 
@@ -495,7 +615,7 @@ Depois você pode navegar normalmente.
 
 ---
 
-# 12. Explorer
+# 12. Explorer de arquivos (NERDTree)
 
 Pressione:
 
@@ -503,29 +623,23 @@ Pressione:
 F2
 ```
 
-O Vim abre o explorer nativo.
+O Vim abre/fecha um painel lateral com o **NERDTree**, com ícones por tipo de arquivo (via `vim-devicons`) — bem mais parecido com o explorer de uma IDE do que o netrw padrão.
 
-Ele usa o **netrw**, que já vem com o Vim.
-
-Alguns comandos úteis dentro do Explorer:
+Comandos úteis dentro do NERDTree:
 
 | Tecla | Ação |
 |---|---|
-| `Enter` | Abrir arquivo/diretório |
-| `-` | Subir diretório |
-| `d` | Criar diretório |
-| `%` | Criar arquivo |
-| `R` | Renomear |
-| `D` | Deletar |
-| `q` | Fechar Explorer |
+| `Enter` ou `o` | Abrir arquivo/diretório |
+| `t` | Abrir em nova aba |
+| `i` | Abrir em split horizontal |
+| `s` | Abrir em split vertical |
+| `m` | Menu (criar, renomear, mover, deletar) |
+| `R` | Atualizar a árvore |
+| `q` | Fechar o NERDTree |
 
-O estilo utilizado é:
+**Se os ícones aparecerem como caixinhas/quadrados:** seu terminal não está usando uma Nerd Font. Baixe uma em [nerdfonts.com](https://www.nerdfonts.com) e configure o terminal para usá-la — a configuração do Vim já está pronta para exibir os ícones assim que a fonte certa estiver ativa.
 
-```vim
-let g:netrw_liststyle = 3
-```
-
-que mostra a árvore de diretórios de forma mais organizada.
+Se o `NERDTree` não estiver instalado por algum motivo, a configuração cai de volta pro `netrw` nativo do Vim (mesmo atalho `F2` não vai funcionar nesse caso; use `:Explore`).
 
 ---
 
@@ -953,7 +1067,9 @@ As partes foram separadas:
 ```text
 ~/.vim/config/
 ├── appearance.vim
+├── coc.vim
 ├── cpp.vim
+├── java.vim
 ├── explorer.vim
 ├── keymaps.vim
 └── search.vim
@@ -1148,9 +1264,18 @@ rm -rf ~/.vim/templates
 Para remover os plugins instalados por este projeto:
 
 ```bash
-rm -rf ~/.vim/pack/themes/start/catppuccin
-rm -rf ~/.vim/pack/plugins/start/vim-airline
-rm -rf ~/.vim/pack/plugins/start/vim-airline-themes
+rm -rf ~/.vim/pack/plugins/opt/catppuccin
+rm -rf ~/.vim/pack/plugins/opt/vim-airline
+rm -rf ~/.vim/pack/plugins/opt/vim-airline-themes
+rm -rf ~/.vim/pack/plugins/opt/nerdtree
+rm -rf ~/.vim/pack/plugins/opt/vim-devicons
+rm -rf ~/.vim/pack/plugins/opt/coc.nvim
+```
+
+Para remover a extensão `coc-java` (e outras extensões do coc):
+
+```bash
+rm -rf ~/.config/coc
 ```
 
 Se você tiver um `.vimrc` antigo, restaure o backup.
@@ -1290,9 +1415,11 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 
 ```text
 ┌───────────────────────────────────────────┐
-│           VIM CODEFORCES IDE              │
+│     VIM CODEFORCES / JAVA IDE             │
+│     Configuração Ícaro Lira               │
 ├───────────────────────────────────────────┤
-│ F2       Explorer                         │
+│ F2       Explorer (NERDTree)              │
+│ F4       Liga/desliga autocomplete        │
 │ F5       Compilar                         │
 │ F6       Executar                         │
 │ F7       Compilar + Executar              │
@@ -1307,11 +1434,11 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 │ S-Tab    Buffer anterior                  │
 │ Esc      Limpar busca                     │
 ├───────────────────────────────────────────┤
-│ Template automático para .cpp             │
+│ Templates automáticos: .cpp e .java       │
 │ C++17 + O2 + Wall + Wextra                │
-│ Catppuccin                                │
-│ Airline                                   │
-│ Explorer                                  │
+│ Autocomplete via coc.nvim + coc-java      │
+│ Catppuccin + Airline                      │
+│ NERDTree + devicons                       │
 │ Terminal                                  │
 └───────────────────────────────────────────┘
 ```
@@ -1367,7 +1494,6 @@ Possíveis extensões:
 
 - `fzf` para busca de arquivos
 - `vim-fugitive` para Git
-- `vim-devicons` para ícones
 - integração com testes múltiplos
 - comparação automática `output.txt`
 - gerador de arquivos A/B/C/D/E
@@ -1412,6 +1538,8 @@ O resultado é um ambiente pequeno, rápido e portátil que pode ser reproduzido
 Vim
 Git
 g++
+JDK (para Java)
+Node.js (para o autocomplete)
 ```
 
 ---
@@ -1421,3 +1549,5 @@ g++
 Esta configuração é pessoal/educacional e pode ser modificada livremente.
 
 Os plugins utilizados pertencem aos seus respectivos projetos e autores.
+
+**Configuração Vim Ícaro Lira**

@@ -58,3 +58,12 @@ function! TestCpp() abort
                 \ shellescape(l:file) . ' -o ' . shellescape(l:output) .
                 \ ' && ' . shellescape(l:output) . ' < input.txt'
 endfunction
+
+" Atalhos locais só dentro de arquivos .cpp (não conflita com Java)
+augroup cpp_keymaps
+    autocmd!
+    autocmd FileType cpp nnoremap <buffer> <F5> :call CompileCpp()<CR>
+    autocmd FileType cpp nnoremap <buffer> <F6> :call RunCpp()<CR>
+    autocmd FileType cpp nnoremap <buffer> <F7> :call BuildRunCpp()<CR>
+    autocmd FileType cpp nnoremap <buffer> <F8> :call TestCpp()<CR>
+augroup END
