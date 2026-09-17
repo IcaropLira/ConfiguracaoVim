@@ -40,6 +40,14 @@ function! InsertJavaTemplate() abort
     " remove a linha em branco deixada pelo :r no topo
     silent! execute '$'
     normal! gg
+
+    " IMPORTANTE: coc-java/JDT precisa que o arquivo standalone exista
+    " no disco para anexar o buffer ao Language Server.
+    " Salvamos e recarregamos automaticamente só na criação do arquivo.
+    if !filereadable(expand('%:p'))
+        silent! noautocmd write
+        silent! edit!
+    endif
 endfunction
 
 augroup java_template

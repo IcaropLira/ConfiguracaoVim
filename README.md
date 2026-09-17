@@ -1,6 +1,6 @@
-# Vim Codeforces / Java IDE — Configuração Ícaro Lira
+# Vim Codeforces / C++ / Java IDE — Configuração Ícaro Lira
 
-Configuração portátil de **Vim para programação competitiva e desenvolvimento em Java**.
+Configuração portátil de **Vim para programação competitiva e desenvolvimento em Java**, pensada principalmente para **Codeforces, OBI, maratonas, exercícios de algoritmos em C++ e Java**.
 
 A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, statusline, explorer em árvore com ícones, autocomplete tipo IDE (com toggle rápido), templates automáticos, compilação rápida, execução, testes com `input.txt`, terminal e atalhos para navegação.
 
@@ -10,14 +10,15 @@ A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, 
 
 ## Interface
 
-- Tema **Catppuccin**
-- `vim-airline` para uma statusline bonita, com indicador de autocomplete
+- Tema próprio **preto + vermelho** (`icaro`), moderno e escuro — construído do zero pra essa configuração (veja seção 13)
+- `vim-airline` para uma statusline completa: modo atual, git branch (se `vim-fugitive`/similar existir), nome do arquivo, indicador de autocomplete, posição do cursor e um créditozinho, tudo combinando com o tema
+- Barra de buffers (`tabline`) no topo, estilo abas de IDE
 - Números de linha (absoluto + relativo)
 - Linha atual destacada
 - Separadores de janelas estilizados
 - Winbar quando suportada pela versão do Vim
-- Menu de autocomplete (popup) estilizado 
-- True Color
+- Menu de autocomplete (popup) estilizado combinando com o tema
+- True Color, com correção específica para funcionar dentro do tmux
 - Mouse habilitado
 - Clipboard do sistema
 
@@ -50,47 +51,48 @@ g++ -std=c++17 -O2 -Wall -Wextra
 
 ---
 
-# 2. Instalação rápida
+# 2. Instalação rápida — modo laboratório (sem privilégios)
 
-## Método recomendado
+Esta versão foi preparada para computadores em que você **não possui sudo**.
 
-Primeiro obtenha o projeto:
+O instalador **não chama `sudo`, `su`, `doas`, `pkexec` nem nenhum gerenciador de pacotes do sistema**. Ele só escreve dentro do seu `$HOME`.
 
 ```bash
-git clone <SEU_REPOSITORIO>
+unzip vim-codeforces-ide-no-sudo.zip
 cd vim-codeforces-ide
-```
-
-Depois torne o instalador executável:
-
-```bash
 chmod +x install.sh
-```
-
-Execute:
-
-```bash
 ./install.sh
 ```
 
-Depois:
+Ele instala/usa automaticamente, sempre no espaço do usuário:
+
+- plugins do Vim em `~/.vim/`;
+- `coc.nvim`;
+- `coc-clangd`, `coc-java`, `coc-snippets` e `coc-pairs`;
+- Node.js portátil, caso `node`/`npm` não existam;
+- Eclipse Temurin JDK 21 portátil, caso não exista um `javac` adequado;
+- clangd portátil oficial, caso não exista `clangd`;
+- `~/.local/bin/icaro-vim`, um launcher que prepara o ambiente antes de abrir o Vim.
+
+As versões portáteis são baixadas somente de fontes oficiais por HTTPS: Node.js, Eclipse Adoptium e o projeto clangd. O clangd Linux oficial é distribuído como binário portátil e requer glibc 2.18 ou mais recente.
+
+Para abrir no laboratório, prefira:
 
 ```bash
-vim
+~/.local/bin/icaro-vim
 ```
 
-**Não é necessário `sudo` para instalar a configuração do Vim.**
+Diagnóstico completo:
 
-O instalador copia tudo para:
-
-```text
-~/.vim/
-~/.vimrc
+```bash
+~/.local/share/icaro-vim/doctor.sh
 ```
 
-Também cria automaticamente um backup do seu `.vimrc` anterior, caso exista.
+### O que continua dependendo do computador
 
----
+O instalador não pode colocar um compilador C/C++ completo no sistema sem privilégios de forma universal. Portanto, `g++` precisa existir no laboratório para os atalhos de compilação C++. O **autocomplete C++ não depende do `g++` do sistema** quando o clangd portátil foi instalado.
+
+Java é diferente: o instalador coloca um JDK completo no seu `$HOME` quando necessário, então `java`/`javac` e o JDT podem funcionar sem instalação administrativa.
 
 # 3. Se Vim, Git, g++, JDK ou Node.js não estiverem instalados
 
@@ -104,8 +106,10 @@ Além do Vim, Git e g++ (para C++), você também vai precisar de:
 ## Ubuntu / Debian / Linux Mint
 
 ```bash
-sudo apt update
-sudo apt install vim git g++ default-jdk nodejs npm
+# Este comando pertence à instalação administrativa do sistema;
+# o instalador Ícaro desta versão não o utiliza.
+# Este comando pertence à instalação administrativa do sistema;
+# o instalador Ícaro desta versão não o utiliza.
 ```
 
 Depois confira:
@@ -123,7 +127,8 @@ node --version
 ## Fedora
 
 ```bash
-sudo dnf install vim git gcc-c++ java-17-openjdk-devel nodejs npm
+# Este comando pertence à instalação administrativa do sistema;
+# o instalador Ícaro desta versão não o utiliza.
 ```
 
 Confira:
@@ -141,7 +146,8 @@ node --version
 ## Arch Linux / Manjaro
 
 ```bash
-sudo pacman -S vim git gcc jdk-openjdk nodejs npm
+# Este comando pertence à instalação administrativa do sistema;
+# o instalador Ícaro desta versão não o utiliza.
 ```
 
 Confira:
@@ -172,13 +178,18 @@ Repare que agora **todos** os plugins vão para `pack/plugins/opt` (não `start`
 
 ---
 
-## 4.2 Instalar Catppuccin
+## 4.2 Instalar o tema (preto + vermelho)
+
+Diferente dos outros, esse não vem de um repositório externo: é um tema
+próprio, feito sob medida pra essa configuração, e já vem dentro da
+pasta `theme/icaro-theme` deste projeto. Só copiar:
 
 ```bash
-git clone --depth 1 \
-https://github.com/catppuccin/vim.git \
-~/.vim/pack/plugins/opt/catppuccin
+cp -r theme/icaro-theme ~/.vim/pack/plugins/opt/icaro-theme
 ```
+
+Ele inclui o colorscheme (`colors/icaro.vim`) e o tema do airline
+(`autoload/airline/themes/icaro.vim`) — os dois já combinando entre si.
 
 ---
 
@@ -248,18 +259,20 @@ Depois da instalação:
 ├── templates/
 │   ├── cpp.cpp
 │   ├── java_main.java
-│   └── java_cp.java
+│   ├── java_cp.java
+│   └── coc-settings.json
 │
 └── pack/
     └── plugins/
         └── opt/
-            ├── catppuccin/
+            ├── icaro-theme/
             ├── vim-airline/
             ├── vim-airline-themes/
             ├── nerdtree/
             ├── vim-devicons/
             └── coc.nvim/
 
+~/.vim/coc-settings.json
 ~/.vimrc
 ```
 
@@ -643,7 +656,43 @@ Se o `NERDTree` não estiver instalado por algum motivo, a configuração cai de
 
 ---
 
-# 13. Buffers
+# 13. Tema preto + vermelho, e o problema do indicador sumindo no tmux
+
+O tema (`colors/icaro.vim` + o tema do airline correspondente, dentro de `theme/icaro-theme/`) foi feito do zero pra essa configuração: fundo bem preto, statusline, sidebar, popups e bordas predominantemente em tons de vermelho/preto. O código em si continua colorido normalmente (verde pra strings, âmbar pra números, azul pra tipos, laranja pra funções) — só a "casca" da interface que segue a paleta preto+vermelho.
+
+## Por que o "AC ON/OFF" sumia dentro do tmux
+
+O `vim-airline` esconde seções inteiras da statusline quando a janela fica estreita demais — por padrão, a seção onde fica o indicador de autocomplete só aparecia com a janela tendo pelo menos **80 colunas**. Um painel de tmux dividido facilmente fica menor que isso, daí o indicador sumir sem nenhum erro aparecer.
+
+A correção (já aplicada em `config/appearance.vim`) desliga esse truncamento:
+
+```vim
+let g:airline#extensions#default#section_truncate_width = {
+      \ 'b': 0, 'x': 0, 'y': 0, 'z': 0,
+      \ 'warning': 0, 'error': 0, 'warning2': 0,
+      \ }
+```
+
+Com isso o indicador (e o créditozinho) ficam visíveis mesmo em janelas bem estreitas. Isso foi verificado diretamente: numa janela de 40 colunas, o texto `● AC ON` continua aparecendo na seção certa da statusline.
+
+Havia ainda uma segunda causa, mais sutil: o `vim-airline` monta a primeira versão da statusline **antes** do `VimEnter` disparar, então só sobrescrever a variável global depois (como a configuração original fazia) não bastava — ele não redesenhava sozinho. Por isso as funções `AutocompleteStatus()`/`CreditFooter()` e as seções `g:airline_section_y`/`g:airline_section_z` agora ficam definidas bem no topo do `~/.vimrc`, antes de qualquer plugin carregar.
+
+## Cores estranhas/lavadas dentro do tmux
+
+Isso normalmente é o tmux não estando configurado pra repassar true color (24 bits) pro Vim. Adicione ao seu `~/.tmux.conf`:
+
+```tmux
+set -g default-terminal "tmux-256color"
+set -ga terminal-overrides ",*:RGB"
+```
+
+E reinicie o tmux (`tmux kill-server` e abra de novo, ou `tmux source-file ~/.tmux.conf`).
+
+Mesmo sem isso, o tema tem um fallback de 256 cores (aproximações da paleta preto+vermelho) configurado, então nunca fica totalmente quebrado — só um pouco menos fiel às cores exatas.
+
+---
+
+# 14. Buffers
 
 No Vim, um arquivo aberto é um buffer.
 
@@ -688,7 +737,7 @@ Ir diretamente para um buffer:
 
 ---
 
-# 14. Janelas
+# 15. Janelas
 
 Dividir horizontalmente:
 
@@ -722,7 +771,7 @@ Isso é especialmente útil para deixar o código de um lado e outro arquivo/ter
 
 ---
 
-# 15. Comandos básicos do Vim
+# 16. Comandos básicos do Vim
 
 ## Abrir arquivo
 
@@ -786,7 +835,7 @@ ou:
 
 ---
 
-# 16. Modos do Vim
+# 17. Modos do Vim
 
 O Vim possui principalmente:
 
@@ -868,12 +917,12 @@ Exemplos:
 :q
 :wq
 :set number
-:colorscheme catppuccin
+:colorscheme icaro
 ```
 
 ---
 
-# 17. Navegação rápida
+# 18. Navegação rápida
 
 No modo normal:
 
@@ -910,7 +959,7 @@ ou:
 
 ---
 
-# 18. Edição rápida
+# 19. Edição rápida
 
 ```text
 dd      apagar linha
@@ -948,7 +997,7 @@ apaga o conteúdo dentro de `{}`.
 
 ---
 
-# 19. Visual + indentação
+# 20. Visual + indentação
 
 Selecione linhas:
 
@@ -990,7 +1039,7 @@ formata/reindenta o arquivo inteiro segundo as regras do Vim.
 
 ---
 
-# 20. Pesquisa
+# 21. Pesquisa
 
 Pesquisar:
 
@@ -1032,7 +1081,7 @@ ou:
 
 ---
 
-# 21. Substituição
+# 22. Substituição
 
 Substituir na linha atual:
 
@@ -1054,7 +1103,7 @@ Perguntando antes:
 
 ---
 
-# 22. Configuração do editor
+# 23. Configuração do editor
 
 A configuração principal está em:
 
@@ -1079,7 +1128,7 @@ Isso facilita modificar o Vim sem transformar o `.vimrc` em um arquivo gigante.
 
 ---
 
-# 23. Configurações importantes
+# 24. Configurações importantes
 
 ## Números de linha
 
@@ -1157,7 +1206,7 @@ mantém algumas linhas ao redor do cursor durante a rolagem.
 
 ---
 
-# 24. Segurança e arquivos temporários
+# 25. Segurança e arquivos temporários
 
 A configuração usa:
 
@@ -1173,7 +1222,7 @@ Isso evita a criação dos arquivos temporários tradicionais do Vim.
 
 ---
 
-# 25. Por que usar C++17?
+# 26. Por que usar C++17?
 
 A configuração compila com:
 
@@ -1199,7 +1248,7 @@ int main() {
 
 ---
 
-# 26. Flags do compilador
+# 27. Flags do compilador
 
 O comando padrão é:
 
@@ -1227,7 +1276,7 @@ Esses warnings ajudam a encontrar erros que poderiam virar WA ou comportamento i
 
 ---
 
-# 27. Como restaurar seu Vim antigo
+# 28. Como restaurar seu Vim antigo
 
 O instalador cria um backup antes de substituir:
 
@@ -1251,7 +1300,7 @@ Substitua `DATA` pelo nome real do backup.
 
 ---
 
-# 28. Desinstalar a configuração
+# 29. Desinstalar a configuração
 
 Para remover a configuração:
 
@@ -1259,12 +1308,13 @@ Para remover a configuração:
 rm -f ~/.vimrc
 rm -rf ~/.vim/config
 rm -rf ~/.vim/templates
+rm -f ~/.vim/coc-settings.json
 ```
 
 Para remover os plugins instalados por este projeto:
 
 ```bash
-rm -rf ~/.vim/pack/plugins/opt/catppuccin
+rm -rf ~/.vim/pack/plugins/opt/icaro-theme
 rm -rf ~/.vim/pack/plugins/opt/vim-airline
 rm -rf ~/.vim/pack/plugins/opt/vim-airline-themes
 rm -rf ~/.vim/pack/plugins/opt/nerdtree
@@ -1282,7 +1332,7 @@ Se você tiver um `.vimrc` antigo, restaure o backup.
 
 ---
 
-# 29. Levar para outro computador
+# 30. Levar para outro computador
 
 Esse é um dos objetivos principais deste projeto.
 
@@ -1315,7 +1365,7 @@ Workflow C++
 
 ---
 
-# 30. Instalação no PC do LCC
+# 31. Instalação no PC do LCC
 
 Exemplo completo:
 
@@ -1337,8 +1387,10 @@ instale o compilador de acordo com a distribuição Linux.
 Ubuntu/Debian:
 
 ```bash
-sudo apt update
-sudo apt install g++
+# Este comando pertence à instalação administrativa do sistema;
+# o instalador Ícaro desta versão não o utiliza.
+# Este comando pertence à instalação administrativa do sistema;
+# o instalador Ícaro desta versão não o utiliza.
 ```
 
 Depois:
@@ -1355,7 +1407,7 @@ vim
 
 ---
 
-# 31. Teste final
+# 32. Teste final
 
 Depois da instalação:
 
@@ -1411,7 +1463,7 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 
 ---
 
-# 32. Resumo rápido
+# 33. Resumo rápido
 
 ```text
 ┌───────────────────────────────────────────┐
@@ -1437,7 +1489,7 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 │ Templates automáticos: .cpp e .java       │
 │ C++17 + O2 + Wall + Wextra                │
 │ Autocomplete via coc.nvim + coc-java      │
-│ Catppuccin + Airline                      │
+│ Tema preto + vermelho (icaro)              │
 │ NERDTree + devicons                       │
 │ Terminal                                  │
 └───────────────────────────────────────────┘
@@ -1445,7 +1497,7 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 
 ---
 
-# 33. Ideia do workflow
+# 34. Ideia do workflow
 
 A intenção é que, durante uma competição, você consiga fazer:
 
@@ -1486,7 +1538,7 @@ O objetivo é deixar o máximo possível do processo de competição dentro do V
 
 ---
 
-# 34. Próximas extensões possíveis
+# 35. Próximas extensões possíveis
 
 O projeto foi estruturado para receber mais ferramentas futuramente.
 
@@ -1512,7 +1564,7 @@ Possíveis extensões:
 
 ---
 
-# 35. Filosofia da configuração
+# 36. Filosofia da configuração
 
 A configuração não tenta transformar o Vim em uma cópia do VS Code.
 
@@ -1551,3 +1603,30 @@ Esta configuração é pessoal/educacional e pode ser modificada livremente.
 Os plugins utilizados pertencem aos seus respectivos projetos e autores.
 
 **Configuração Vim Ícaro Lira**
+
+
+## Java — autocomplete semântico
+
+A configuração usa `coc-java` com o Eclipse JDT Language Server. O JDT fornece completion baseado no tipo real do objeto, métodos, assinaturas, navegação e diagnósticos. O projeto `coc-java` documenta que arquivos Java standalone precisam estar salvos no disco para o JDT anexar o buffer; esta versão cria e salva automaticamente arquivos Java novos e recarrega um buffer Java depois de salvar.
+
+Teste:
+
+```java
+import java.util.ArrayList;
+
+ArrayList<String> cavalo = new ArrayList<>();
+cavalo.
+```
+
+Deve aparecer a API real de `ArrayList`, como `add`, `get`, `remove`, `size`, etc. `Ctrl-Space` força a lista quando o gatilho automático não aparecer.
+
+Comandos úteis:
+
+- `:LspHealth` — informações do coc.nvim/LSP
+- `:JavaLog` — log do Eclipse JDT Language Server
+- `:JavaClientLog` — log do coc-java
+- `:JavaLogs` — ambos os logs
+- `:JavaCleanWorkspace` — limpa o workspace do JDT
+- `:JavaReloadProjects` — recarrega a configuração dos projetos
+
+O comando correto do coc-java para o log do servidor é `java.open.serverLog`; `java.open.log` não existe.

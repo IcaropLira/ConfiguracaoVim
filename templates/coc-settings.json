@@ -1,0 +1,89 @@
+{
+  "suggest.autoTrigger": "always",
+  "suggest.noselect": false,
+  "suggest.enablePreselect": true,
+  "suggest.enablePreview": true,
+  "suggest.floatEnable": true,
+  "suggest.timeout": 5000,
+  "suggest.maxCompleteItemCount": 100,
+  "suggest.minTriggerInputLength": 1,
+  "suggest.snippetIndicator": " ●",
+  "suggest.detailField": "menu",
+  "suggest.completionItemKindLabels": {
+    "keyword": "\\uf1de",
+    "variable": "\\uf686",
+    "value": "\\uf89f",
+    "operator": "Ψ",
+    "constructor": "\\uf423",
+    "function": "ƒ",
+    "reference": "\\uf47a",
+    "constant": "\\uf8fe",
+    "method": "\\uf6a6",
+    "struct": "\\uf1b3",
+    "class": "\\uf0e8",
+    "interface": "\\uf417",
+    "text": "\\ue612",
+    "enum": "\\uf435",
+    "enumMember": "\\uf02b",
+    "module": "\\uf40d",
+    "property": "\\ue624",
+    "field": "\\uf9be",
+    "unit": "\\uf475",
+    "snippet": "\\ue60b",
+    "file": "\\uf723",
+    "folder": "\\uf114",
+    "default": "\\uf29c"
+  },
+
+  "diagnostic.enable": true,
+  "diagnostic.virtualText": true,
+  "diagnostic.virtualTextPrefix": "  ● ",
+  "diagnostic.checkCurrentLine": true,
+
+  "signature.enable": true,
+  "signature.target": "float",
+  "signature.floatConfig": {
+    "border": true
+  },
+
+  "codeLens.enable": true,
+  "hover.target": "float",
+
+  "java.completion.enabled": true,
+  "java.completion.guessMethodArguments": true,
+  "java.completion.overwrite": true,
+  "java.completion.maxResults": 0,
+  "java.enabled": true,
+  "java.jdt.ls.statusIcons": {
+    "busy": "Java…",
+    "ready": "Java OK",
+    "warning": "Java !",
+    "Error": "Java X"
+  },
+  "[java]": {
+    "semanticTokens.enable": true
+  },
+  "java.signatureHelp.enabled": true,
+  "java.signatureHelp.description.enabled": true,
+  "java.format.enabled": true,
+  "java.format.onType.enabled": true,
+  "java.saveActions.organizeImports": true,
+  "java.sources.organizeImports.starThreshold": 99,
+  "java.autobuild.enabled": true,
+  "java.maxConcurrentBuilds": 1,
+  "java.referencesCodeLens.enabled": true,
+  "java.implementationsCodeLens.enabled": true,
+  "java.inlayHints.parameterNames.enabled": "all",
+
+  "clangd.arguments": [
+    "--background-index",
+    "--clang-tidy",
+    "--completion-style=detailed",
+    "--header-insertion=iwyu",
+    "--function-arg-placeholders=true"
+  ],
+  "clangd.semanticHighlighting": true,
+  "clangd.fallbackFlags": [
+    "-std=c++17"
+  ]
+}
