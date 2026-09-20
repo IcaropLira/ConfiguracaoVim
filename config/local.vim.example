@@ -1,0 +1,10 @@
+" ============================================================
+" Preferências locais — este arquivo é seu, o install.sh não
+" sobrescreve ele depois de criado uma vez.
+" ============================================================
+
+" 1 = você tem uma Nerd Font instalada e configurada no terminal
+"     (ícones bonitos no NERDTree, setinhas "powerline" na statusline)
+" 0 = ícones/setinhas simples em Unicode comum, funciona em qualquer
+"     fonte monoespaçada, sem caixinha quebrada
+let g:icaro_use_nerd_font = 0

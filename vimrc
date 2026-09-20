@@ -1,3 +1,6 @@
+set encoding=utf-8
+scriptencoding utf-8
+set fileencodings=utf-8
 set nocompatible
 filetype plugin indent on
 syntax enable
@@ -8,24 +11,75 @@ set background=dark
 " Vim Codeforces / Java IDE — Configuração Ícaro Lira
 " ============================================================
 
+" ------------------------------------------------------------
+" Preferências locais (nerd font sim/não, etc). Esse arquivo NÃO faz
+" parte do pacote em si — o install.sh cria/pergunta uma vez só, e
+" nunca sobrescreve depois, pra guardar sua escolha.
+" ------------------------------------------------------------
+if filereadable(expand('~/.vim/config/local.vim'))
+    source ~/.vim/config/local.vim
+endif
+let g:icaro_use_nerd_font = get(g:, 'icaro_use_nerd_font', 0)
+
+" ------------------------------------------------------------
+" Persistência dos toggles (autocomplete / dicas de parâmetro).
+" Cada F4/F3 (veja config/coc.vim) grava um arquivinho de 1 caractere
+" em ~/.vim/; aqui a gente lê ele de volta ANTES de qualquer plugin
+" carregar — é o que garante que "desligado" continua desligado depois
+" de fechar e abrir o vim de novo.
+" ------------------------------------------------------------
+let g:icaro_ac_state_file    = expand('~/.vim/.icaro_autocomplete_state')
+let g:icaro_inlay_state_file = expand('~/.vim/.icaro_inlayhints_state')
+
+function! s:ReadState(file, default) abort
+    if filereadable(a:file)
+        let l:lines = readfile(a:file)
+        if !empty(l:lines) && l:lines[0] ==# '0'
+            return 0
+        endif
+    endif
+    return a:default
+endfunction
+
+let g:my_autocomplete_enabled = s:ReadState(g:icaro_ac_state_file, 1)
+let g:my_inlay_hints_enabled  = s:ReadState(g:icaro_inlay_state_file, 1)
+
+" Impede o coc.nvim de sequer iniciar o serviço se a última escolha
+" salva foi "desligado" — assim ele nasce desligado de verdade, em vez
+" de ligar e a gente desligar na marra logo em seguida.
+let g:coc_start_at_startup = g:my_autocomplete_enabled
+
 " O vim-airline lê estas variáveis assim que ele mesmo inicializa
 " (antes do resto da nossa config ser carregada). Se a gente só
 " definir isso depois (em config/appearance.vim), o airline já vai
 " ter montado a statusline com os padrões dele, e simplesmente
 " sobrescrever a variável global depois não força ele a redesenhar —
-" por isso essas duas funções e as seções customizadas ficam aqui,
-" bem no topo, antes de qualquer 'packadd'.
-let g:my_autocomplete_enabled = get(g:, 'my_autocomplete_enabled', 1)
-
+" por isso essas funções e as seções customizadas ficam aqui, bem no
+" topo, antes de qualquer 'packadd'.
 function! AutocompleteStatus() abort
-    return get(g:, 'my_autocomplete_enabled', 1) ? '● AC ON' : '○ AC OFF'
+    return get(g:, 'my_autocomplete_enabled', 1) ? '[AC:ON]' : '[AC:OFF]'
 endfunction
 
-function! CreditFooter() abort
-    return 'Config: Ícaro Lira'
+function! InlayHintStatus() abort
+    return get(g:, 'my_inlay_hints_enabled', 1) ? '[IH:ON]' : '[IH:OFF]'
 endfunction
 
-let g:airline_section_y = '%{AutocompleteStatus()}'
+" O créditozinho é escrito por extenso a partir de códigos de
+" caractere de propósito (em vez de string literal), e reaplicado
+" sozinho se alguém apagar a linha da statusline/winbar — veja
+" config/credit.vim. Isso é só um capricho pessoal, não uma trava de
+" verdade; qualquer um com paciência consegue tirar editando os dois
+" arquivos certos, mas não é algo que sai só apertando um "delete".
+if filereadable(expand('~/.vim/config/credit.vim'))
+    source ~/.vim/config/credit.vim
+endif
+if !exists('*CreditFooter')
+    function! CreditFooter() abort
+        return 'Config: Ícaro Lira'
+    endfunction
+endif
+
+let g:airline_section_y = '%{AutocompleteStatus()} %{InlayHintStatus()}'
 let g:airline_section_z = '%#__accent_bold#%l%#__restore__#:%v %3p%%  %{CreditFooter()}'
 
 " Editor
@@ -70,8 +124,25 @@ set splitright
 silent! packadd! icaro-theme
 silent! packadd! vim-airline
 silent! packadd! vim-airline-themes
+silent! packadd! vim-fugitive
 silent! packadd! nerdtree
-silent! packadd! vim-devicons
+silent! packadd! nerdtree-git-plugin
+
+" vim-devicons (ícones por tipo de arquivo) só é carregado se você
+" confirmou ter uma Nerd Font instalada (pergunta feita pelo
+" install.sh, guardada em config/local.vim). Sem isso, os ícones
+" aparecem como caixinhas/losangos — pior do que não ter ícone
+" nenhum. Sem uma Nerd Font, a interface usa símbolos Unicode comuns,
+" que praticamente qualquer fonte monoespaçada já sabe desenhar.
+if g:icaro_use_nerd_font
+    silent! packadd! vim-devicons
+    let g:webdevicons_enable = 1
+    let g:airline_powerline_fonts = 1
+else
+    let g:webdevicons_enable = 0
+    let g:airline_powerline_fonts = 0
+endif
+
 silent! packadd! coc.nvim
 
 " Corrige as cores dentro do tmux/screen. Sem 'termguicolors' entrando
@@ -84,8 +155,10 @@ if !empty($TMUX)
     set termguicolors
 endif
 
-" Theme: preto + vermelho (Configuração Ícaro Lira)
-silent! colorscheme icaro
+" Tema: quem decide qual está ativo (e aplica o salvo da última vez)
+" é o config/themes.vim, carregado logo abaixo — o tema "Malvadão" é
+" só o primeiro da lista/padrão de fábrica.
+source ~/.vim/config/themes.vim
 
 " Configuração modular
 source ~/.vim/config/appearance.vim

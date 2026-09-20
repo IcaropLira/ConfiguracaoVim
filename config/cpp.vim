@@ -66,4 +66,11 @@ augroup cpp_keymaps
     autocmd FileType cpp nnoremap <buffer> <F6> :call RunCpp()<CR>
     autocmd FileType cpp nnoremap <buffer> <F7> :call BuildRunCpp()<CR>
     autocmd FileType cpp nnoremap <buffer> <F8> :call TestCpp()<CR>
+    " Mesmas teclas, funcionando também dentro do modo de inserção
+    " (sem te tirar dele) — evita o Vim se confundir com a sequência
+    " de escape da tecla no meio de uma digitação
+    autocmd FileType cpp inoremap <silent><buffer> <F5> <C-o>:call CompileCpp()<CR>
+    autocmd FileType cpp inoremap <silent><buffer> <F6> <C-o>:call RunCpp()<CR>
+    autocmd FileType cpp inoremap <silent><buffer> <F7> <C-o>:call BuildRunCpp()<CR>
+    autocmd FileType cpp inoremap <silent><buffer> <F8> <C-o>:call TestCpp()<CR>
 augroup END

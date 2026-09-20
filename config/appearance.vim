@@ -1,3 +1,4 @@
+scriptencoding utf-8
 if exists('g:loaded_my_appearance')
     finish
 endif
@@ -16,13 +17,83 @@ if exists('+winbar')
 endif
 
 " ------------------------------------------------------------
+" Tela inicial (quando o vim abre sem nenhum arquivo). De propósito
+" só usa caracteres ASCII puros (sem blocos/linhas Unicode) — isso
+" também depende de fonte/locale do terminal, e ASCII simples é o
+" único jeito de garantir que nunca vai aparecer embaralhado.
+" ------------------------------------------------------------
+set shortmess+=I
+
+function! s:ShowStartScreen() abort
+    if argc() != 0 || line('$') > 1 || getline(1) !=# '' || &modified
+        return
+    endif
+    setlocal buftype=nofile bufhidden=wipe noswapfile nobuflisted
+    setlocal nonumber norelativenumber signcolumn=no cursorline
+    let l:banner = [
+                \ '',
+                \ '',
+                \ '        _________  _____  ____  ____  ',
+                \ '       /  _/ ___/ / _ | / __ \/ __ \ ',
+                \ '      _/ // /__  / __ |/ /_/ / /_/ / ',
+                \ '     /___/\___/ /_/ |_|\____/\____/  ',
+                \ '',
+                \ '          vim  --  c++ & java',
+                \ '          config: Icaro Lira',
+                \ '',
+                \ '',
+                \ '   F2  explorer              F5  compilar',
+                \ '   F3  dicas de parametro    F6  executar',
+                \ '   F4  autocomplete          F7  compilar + executar',
+                \ '   F9  terminal              F8  testar com input.txt',
+                \ '',
+                \ '   :e nome.cpp   ou   :e nome.java   para comecar',
+                \ '',
+                \ ]
+    call setline(1, l:banner)
+    setlocal nomodifiable nomodified
+    syntax match IcaroStartBanner '[_/\\|]'
+    syntax match IcaroStartSubtitle '\Vvim  --  c++ & java\|\Vconfig: Icaro Lira'
+    syntax match IcaroStartKey '\<F[2-9]\>'
+    highlight IcaroStartBanner guifg=#e63946 gui=bold
+    highlight IcaroStartSubtitle guifg=#7a7478 gui=italic
+    highlight IcaroStartKey guifg=#ff5d5d gui=bold
+    nnoremap <buffer><silent> q :q<CR>
+    autocmd BufWipeout <buffer> setlocal modifiable
+endfunction
+
+augroup icaro_start_screen
+    autocmd!
+    autocmd VimEnter * call s:ShowStartScreen()
+augroup END
+
+" ------------------------------------------------------------
 " Airline (barra inferior)
 " ------------------------------------------------------------
-let g:airline_powerline_fonts = 1
-let g:airline_theme = 'icaro'
+" g:airline_powerline_fonts e g:webdevicons_enable já foram decididos
+" no ~/.vimrc a partir de g:icaro_use_nerd_font — aqui só ajustamos os
+" separadores visuais pra cada caso. g:airline_theme quem decide é o
+" config/themes.vim (F1 troca).
+if !get(g:, 'icaro_use_nerd_font', 0)
+    " Sem Nerd Font: separadores em formato de seta (> <). São ASCII
+    " puro de propósito — em testes, caracteres tipo ▶/◀ embaralharam
+    " dependendo da fonte/locale do terminal. Se seu terminal tiver
+    " boa fonte Unicode e você quiser a seta triangular "de verdade",
+    " troque as duas linhas abaixo por '▶' e '◀'.
+    let g:airline_left_sep = '>'
+    let g:airline_right_sep = '<'
+    let g:airline_left_alt_sep = '>'
+    let g:airline_right_alt_sep = '<'
+endif
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'
 let g:airline#extensions#coc#enabled = 1
+let g:airline#extensions#coc#error_symbol = 'E:'
+let g:airline#extensions#coc#warning_symbol = 'W:'
+
+" Contador de erros/avisos do coc na statusline (canto, perto do
+" filetype), igual a referência que você mandou
+let g:airline_section_x = airline#section#create(['coc_error_count', 'coc_warning_count', ' ', 'filetype'])
 
 " Sem isso, seções inteiras da statusline (inclusive o indicador de
 " autocomplete) somem sozinhas em janelas estreitas — exatamente o

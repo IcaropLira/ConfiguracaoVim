@@ -1,9 +1,5 @@
 " ============================================================
-" icaro.vim — colorscheme "Configuração Ícaro Lira"
-" Base: preto + vermelho. Sintaxe do código com cores variadas
-" pra manter legibilidade (verde/âmbar/azul), UI (statusline,
-" sidebar, popups, bordas, números) predominantemente preto e
-" vermelho.
+" camelo.vim — colorscheme "Camelo" (Configuracao Vim Icaro Lira)
 " ============================================================
 
 set background=dark
@@ -11,31 +7,30 @@ hi clear
 if exists('syntax_on')
     syntax reset
 endif
-let g:colors_name = 'icaro'
+let g:colors_name = 'camelo'
 
 " ------------------------------------------------------------
 " Paleta
 " ------------------------------------------------------------
-let s:bg0      = ['#0a0a0c', 233]  " fundo principal
-let s:bg1      = ['#131316', 234]  " statusline / sidebar / winbar
-let s:bg2      = ['#1c1c20', 235]  " cursorline / pmenu / popups
-let s:bg3      = ['#2a1216', 52]   " seleção visual (preto avermelhado)
-let s:border   = ['#33262a', 237]  " separadores de janela
-let s:fg0      = ['#e8e6e3', 253]  " texto principal
-let s:fg1      = ['#7a7478', 243]  " números de linha / texto secundário
-let s:comment  = ['#6a6467', 242]  " comentários
+let s:bg0        = ['#2b2118', 235]
+let s:bg1        = ['#36281c', 235]
+let s:bg2        = ['#463522', 236]
+let s:bg3        = ['#5a452b', 238]
+let s:border     = ['#725a38', 240]
+let s:fg0        = ['#f7ead2', 224]
+let s:fg1        = ['#cdbb9b', 180]
+let s:comment    = ['#9e8c70', 137]
 
-let s:red        = ['#e63946', 196]  " vermelho principal (statusline normal)
-let s:red_bright = ['#ff5d5d', 203]  " vermelho vivo (insert / cursorline nr)
-let s:red_dim    = ['#9d0208', 88]   " vermelho escuro (replace / bordas fortes)
-let s:red_soft   = ['#c9184a', 161]  " magenta-vermelho (visual / preproc)
+let s:red        = ['#c9a227', 178]
+let s:red_bright = ['#e0b93a', 179]
+let s:red_dim    = ['#8f6d1a', 94]
+let s:red_soft   = ['#d4863c', 173]
 
-let s:green  = ['#8fbf7f', 108]  " strings
-let s:amber  = ['#e0a458', 179]  " números / warnings
-let s:blue   = ['#7fa8d9', 67]   " tipos / identifiers
-let s:orange = ['#e08e45', 173]  " funções
-
-" ------------------------------------------------------------
+let s:green      = ['#9ecb76', 150]
+let s:amber      = ['#f0cf78', 222]
+let s:blue       = ['#8fb4c9', 110]
+let s:cyan       = ['#8ac7b8', 115]
+let s:orange     = ['#e0a15a', 179]
 " Helper
 " ------------------------------------------------------------
 function! s:hi(group, fg, bg, style) abort
@@ -89,7 +84,7 @@ call s:hi('Search',        s:bg0, s:amber, 'bold')
 call s:hi('IncSearch',     s:bg0, s:red_bright, 'bold')
 call s:hi('CurSearch',     s:bg0, s:red_bright, 'bold')
 call s:hi('MatchParen',    s:fg0, s:red_dim, 'bold')
-call s:hi('Directory',     s:blue, [], '')
+call s:hi('Directory',     s:cyan, [], '')
 call s:hi('Title',         s:red_bright, [], 'bold')
 call s:hi('ModeMsg',       s:red_bright, [], 'bold')
 call s:hi('MoreMsg',       s:green, [], '')
@@ -98,7 +93,9 @@ call s:hi('WarningMsg',    s:amber, [], 'bold')
 call s:hi('ErrorMsg',      s:fg0, s:red_dim, 'bold')
 call s:hi('WildMenu',      s:bg0, s:red, 'bold')
 call s:hi('Pmenu',         s:fg0, s:bg2, '')
-call s:hi('PmenuSel',      s:bg0, s:red_bright, 'bold')
+call s:hi('PmenuSel',      s:fg0, s:red_dim, 'bold')
+call s:hi('PmenuMatch',    s:amber, s:bg2, 'bold')
+call s:hi('PmenuMatchSel', s:amber, s:red_dim, 'bold')
 call s:hi('PmenuSbar',     [], s:bg2, '')
 call s:hi('PmenuThumb',    [], s:red_dim, '')
 call s:hi('SpecialKey',    s:fg1, [], '')
@@ -156,22 +153,28 @@ call s:hi('Todo',          s:bg0, s:amber, 'bold')
 " ------------------------------------------------------------
 call s:hi('CocErrorSign',      s:red_bright, [], '')
 call s:hi('CocWarningSign',    s:amber, [], '')
-call s:hi('CocInfoSign',       s:blue, [], '')
+call s:hi('CocInfoSign',       s:cyan, [], '')
 call s:hi('CocHintSign',       s:fg1, [], '')
 call s:hi('CocErrorHighlight',   [], [], 'undercurl')
 call s:hi('CocWarningHighlight', [], [], 'undercurl')
 call s:hi('CocFloating',       s:fg0, s:bg2, '')
-call s:hi('CocMenuSel',        s:bg0, s:red_bright, 'bold')
-call s:hi('CocSearch',         s:red_bright, [], 'bold')
+call s:hi('CocMenuSel',        s:fg0, s:red_dim, 'bold')
+call s:hi('CocSearch',         s:amber, [], 'bold')
+call s:hi('CocPumSearch',      s:amber, [], 'bold')
+call s:hi('CocPumMenu',        s:fg0, s:bg2, '')
+call s:hi('CocPumDetail',      s:fg1, s:bg2, '')
+call s:hi('CocPumShortcut',    s:fg1, s:bg2, '')
+call s:hi('CocPumDeprecated',  s:fg1, s:bg2, 'strikethrough')
 call s:hi('CocCodeLens',       s:fg1, [], '')
+call s:hi('CocInlayHint',      s:cyan, [], 'italic')
 execute 'hi CocErrorFloat guifg=' . s:red_bright[0] . ' guibg=' . s:bg2[0]
 execute 'hi CocWarningFloat guifg=' . s:amber[0] . ' guibg=' . s:bg2[0]
-execute 'hi CocInfoFloat guifg=' . s:blue[0] . ' guibg=' . s:bg2[0]
+execute 'hi CocInfoFloat guifg=' . s:cyan[0] . ' guibg=' . s:bg2[0]
 
 " ------------------------------------------------------------
 " NERDTree
 " ------------------------------------------------------------
-call s:hi('NERDTreeDir',        s:blue, [], 'bold')
+call s:hi('NERDTreeDir',        s:cyan, [], 'bold')
 call s:hi('NERDTreeDirSlash',   s:fg1, [], '')
 call s:hi('NERDTreeOpenable',   s:red, [], '')
 call s:hi('NERDTreeClosable',   s:red_bright, [], '')
@@ -180,6 +183,21 @@ call s:hi('NERDTreeExecFile',   s:green, [], '')
 call s:hi('NERDTreeCWD',        s:red_bright, [], 'bold')
 call s:hi('NERDTreeUp',         s:fg1, [], '')
 call s:hi('NERDTreeFlags',      s:red, [], '')
+
+" ------------------------------------------------------------
+" Status do git no NERDTree
+" ------------------------------------------------------------
+let g:NERDTreeGitStatusHighlightingCustom = {
+            \ 'Staged'    : 'guifg=' . s:green[0]  . ' ctermfg=' . s:green[1],
+            \ 'Modified'  : 'guifg=' . s:amber[0]  . ' ctermfg=' . s:amber[1],
+            \ 'Untracked' : 'guifg=' . s:fg1[0]    . ' ctermfg=' . s:fg1[1],
+            \ 'Renamed'   : 'guifg=' . s:blue[0]   . ' ctermfg=' . s:blue[1],
+            \ 'Unmerged'  : 'guifg=' . s:red_bright[0] . ' ctermfg=' . s:red_bright[1],
+            \ 'Deleted'   : 'guifg=' . s:red_dim[0]. ' ctermfg=' . s:red_dim[1],
+            \ 'Dirty'     : 'guifg=' . s:red_bright[0] . ' ctermfg=' . s:red_bright[1],
+            \ 'Ignored'   : 'guifg=' . s:comment[0]. ' ctermfg=' . s:comment[1],
+            \ 'Clean'     : 'guifg=' . s:green[0]  . ' ctermfg=' . s:green[1],
+            \ }
 
 " ------------------------------------------------------------
 " Terminal (:terminal), pra combinar com o resto

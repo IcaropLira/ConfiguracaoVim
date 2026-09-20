@@ -40,14 +40,6 @@ function! InsertJavaTemplate() abort
     " remove a linha em branco deixada pelo :r no topo
     silent! execute '$'
     normal! gg
-
-    " IMPORTANTE: coc-java/JDT precisa que o arquivo standalone exista
-    " no disco para anexar o buffer ao Language Server.
-    " Salvamos e recarregamos automaticamente só na criação do arquivo.
-    if !filereadable(expand('%:p'))
-        silent! noautocmd write
-        silent! edit!
-    endif
 endfunction
 
 augroup java_template
@@ -113,4 +105,8 @@ augroup java_keymaps
     autocmd FileType java nnoremap <buffer> <F6> :call RunJava()<CR>
     autocmd FileType java nnoremap <buffer> <F7> :call BuildRunJava()<CR>
     autocmd FileType java nnoremap <buffer> <F8> :call TestJava()<CR>
+    autocmd FileType java inoremap <silent><buffer> <F5> <C-o>:call CompileJava()<CR>
+    autocmd FileType java inoremap <silent><buffer> <F6> <C-o>:call RunJava()<CR>
+    autocmd FileType java inoremap <silent><buffer> <F7> <C-o>:call BuildRunJava()<CR>
+    autocmd FileType java inoremap <silent><buffer> <F8> <C-o>:call TestJava()<CR>
 augroup END
