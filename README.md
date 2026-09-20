@@ -11,7 +11,7 @@ A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, 
 ## Interface
 
 - Tema próprio **preto + vermelho** (`icaro`), moderno e escuro — construído do zero pra essa configuração (veja seção 13)
-- `vim-airline` para uma statusline completa: modo atual, git branch (se `vim-fugitive`/similar existir), nome do arquivo, indicador de autocomplete, posição do cursor e um créditozinho, tudo combinando com o tema
+- `vim-airline` para uma statusline completa: modo atual, git branch (se `vim-fugitive`/similar existir), nome do arquivo, indicador de autocomplete, posição do cursor, tudo combinando com o tema
 - Barra de buffers (`tabline`) no topo, estilo abas de IDE
 - Números de linha (absoluto + relativo)
 - Linha atual destacada
@@ -761,16 +761,6 @@ Antes, os ícones do NERDTree e as setinhas "powerline" da statusline dependiam 
 
 Sua resposta fica salva em `~/.vim/config/local.vim` — o `install.sh` nunca mais pergunta de novo depois disso, mas você pode editar esse arquivo manualmente a qualquer momento pra mudar de ideia.
 
-## Créditozinho difícil de tirar
-
-Por pedido: o "Config: Ícaro Lira" agora é bem mais chato de remover do que apagar uma linha.
-
-- Em vez de string literal, a frase é remontada a partir de códigos de caractere numa função (`config/credit.vim`)
-- Aparece em três lugares ao mesmo tempo: statusline, winbar e topo do painel do NERDTree
-- Um "watchdog" reaplica tudo isso sozinho a cada evento normal do Vim (trocar de buffer, parar o cursor por um instante) — testei na unha: redefini a função pra retornar vazio, e ela voltou sozinha no evento seguinte; apaguei a seção da statusline inteira, e ela também voltou
-
-Não é uma trava de segurança de verdade (ninguém consegue fazer isso num arquivo de config local), mas não sai sem querer — precisa editar `config/credit.vim` de propósito e desligar o `augroup icaro_credit_watchdog` de lá.
-
 ## Tela inicial nova
 
 Abrir o vim sem nenhum arquivo agora mostra uma tela de boas-vindas com o nome da configuração, atalhos principais e como começar. De propósito, ela usa só caracteres ASCII simples (nada de blocos Unicode `█▓▒`) — durante os testes, encontramos telas onde esses blocos ficavam embaralhados dependendo da fonte/locale do terminal, então preferimos algo 100% seguro em qualquer lugar.
@@ -872,7 +862,6 @@ Sem Nerd Font, a statusline agora usa `>` e `<` como separadores entre as seçõ
 
 Se o cursor estiver bem entre um par vazio — `()`, `[]`, `{}`, `""`, `''` ou `` `` `` — apertar `Shift+Backspace` (ou `Ctrl+Backspace`, dependendo do que seu terminal enviar) apaga os dois de uma vez, em vez de só um. Fora dessa situação exata, funciona como um Backspace normal.
 
-**Aviso honesto:** `Shift+Backspace` é uma combinação que nem todo terminal envia de um jeito que o Vim consegue distinguir de um Backspace comum — isso depende do seu terminal/emulador, não é algo que a configuração controle sozinha. Por isso mapeamos também o `Ctrl+Backspace` pro mesmo comportamento, como alternativa mais confiável. Se nenhum dos dois funcionar no seu terminal, me avise.
 
 ---
 
