@@ -12,25 +12,27 @@ let g:colors_name = 'geraldo'
 " ------------------------------------------------------------
 " Paleta
 " ------------------------------------------------------------
-let s:bg0        = ['#1b1016', 233]
-let s:bg1        = ['#251720', 234]
-let s:bg2        = ['#301e2a', 235]
-let s:bg3        = ['#3d2634', 236]
-let s:border     = ['#4a2e3e', 237]
-let s:fg0        = ['#ffeef5', 255]
-let s:fg1        = ['#d9a8bf', 181]
-let s:comment    = ['#a87590', 138]
+let s:bg0      = ['#fdf3f7', 231]
+let s:bg1      = ['#f8e8ef', 255]
+let s:bg2      = ['#f2dce8', 254]
+let s:bg3      = ['#e9cfdf', 253]
+let s:border   = ['#d9b3cb', 182]
+let s:fg0      = ['#4a2c3d', 237]
+let s:fg1      = ['#8a6478', 96]
+let s:comment  = ['#ab8a9d', 139]
 
-let s:red        = ['#ff6fa8', 205]
-let s:red_bright = ['#ff8fc0', 211]
-let s:red_dim    = ['#b8407a', 132]
-let s:red_soft   = ['#ff9ecf', 218]
+let s:red        = ['#f2a8c9', 218]
+let s:red_bright = ['#f8c6dd', 224]
+let s:red_dim    = ['#d47fa8', 175]
+let s:red_soft   = ['#eab8d9', 182]
 
-let s:green      = ['#8fd4a8', 115]
-let s:amber      = ['#f2c14e', 215]
-let s:blue       = ['#a89ee0', 146]
-let s:cyan       = ['#8fd4d0', 116]
-let s:orange     = ['#f2a154', 215]
+let s:green  = ['#a8d4bb', 151]
+let s:amber  = ['#f0d49f', 223]
+let s:blue   = ['#b8c4e6', 152]
+let s:cyan   = ['#a8d6d1', 152]
+let s:orange = ['#f2c6a3', 223]
+
+" ------------------------------------------------------------
 " Helper
 " ------------------------------------------------------------
 function! s:hi(group, fg, bg, style) abort

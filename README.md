@@ -1593,7 +1593,52 @@ vim
 
 ---
 
-# 36. Teste final
+# 36. Compilar/executar não trava mais o teclado (nem joga texto colado no código)
+
+Encontramos e corrigimos uma causa raiz séria: `F5`-`F8` usavam `:!comando` — que **trava** a entrada do Vim até o comando externo terminar. Se você colasse um bloco de código grande e desse `F7` logo em seguida, o que ainda estivesse "na fila" do terminal só chegava no Vim depois que o `:!` devolvia o controle — e nesse momento virava uma sequência de comandos de modo normal, jogando pedaços de texto colado no meio do código sem você querer.
+
+**Correção:** `F5`-`F8` agora abrem um painel de terminal de verdade (`:terminal`), embaixo da tela, rodando o comando **de forma assíncrona**. O Vim nunca fica bloqueado esperando — você pode continuar digitando no arquivo (numa outra janela) enquanto compila, e não existe mais aquela janela de tempo onde texto colado pode vazar pro buffer errado.
+
+Testamos o cenário exato do bug: colar (digitar rápido) um trecho com erro de sintaxe e apertar `F7` quase que imediatamente depois. Resultado: o painel de saída mostra os erros do compilador limpinhos, e o código no buffer permanece exatamente como foi digitado — nada vazou pro meio dele.
+
+Detalhes:
+- O painel de saída reaproveita a mesma janela a cada `F5`-`F8` (não fica empilhando terminal por cima de terminal)
+- Ao terminar (com sucesso ou erro), aparece "`[pressione qualquer tecla para fechar]`" — aperte qualquer tecla e o painel fecha sozinho (usa a opção `term_finish: 'close'` do Vim), voltando o foco pro seu código automaticamente
+- Depois de rodar, o foco fica no painel de saída (pra você já ler o resultado/erro na hora); ao fechar (apertando qualquer tecla), o foco volta pro código sozinho
+
+---
+
+# 37. Folha de atalhos (F12) — aparece enquanto você segura a tecla
+
+Segure `F12` pra ver um resumo com todos os atalhos desta configuração, mais os comandos básicos do Vim e do NERDTree — solte a tecla e o popup some sozinho.
+
+O Vim, rodando dentro de um terminal, não tem como saber de verdade se uma tecla está "pressionada e segurando" ou não — terminais simplesmente não mandam esse tipo de evento pra nenhum programa, é uma limitação de como terminais funcionam, não do Vim. O jeito de simular isso: enquanto você segura uma tecla, o sistema operacional manda ela repetida várias vezes seguidas (a "repetição automática" do teclado); quando você solta, essa repetição para. O `F12` fica de olho nisso — enquanto continuar chegando `F12` repetido, mantém o popup aberto; assim que passar um tempinho sem receber outro, considera que você soltou e fecha.
+
+Isso é uma aproximação (não é uma detecção de "tecla solta" de verdade), e depende da taxa de repetição configurada no seu sistema operacional. Testamos com sucesso simulando o segurar/soltar de verdade. Se no seu computador o popup fechar cedo demais (antes de você soltar de fato) ou demorar demais pra sumir depois que solta, dá pra ajustar isso editando uma linha em `~/.vim/config/cheatsheet.vim`:
+
+```vim
+let g:icaro_cheatsheet_release_ms = 500
+```
+
+Aumente esse número se estiver fechando cedo demais; diminua se estiver demorando demais pra fechar.
+
+---
+
+# 38. Ajustes nos temas: Belchior x Pedro, Geraldo mais pastel, Alan Turing mais arco-íris
+
+- **Belchior** continua branco + azul. **Pedro de...** agora é branco + **cinza** (sem nenhum azul), pra não ficar parecido com o Belchior.
+- **Geraldo** ficou bem mais pastel: fundo quase branco com um leve tom rosado, e os acentos em rosa mais suave (bem mais "hello kitty claro" do que o rosa vibrante de antes).
+- **Alan Turing** ficou mais arco-íris ainda: além da sintaxe já espalhada pelas cores, agora cada **modo do Vim** (normal, insert, visual, replace) pinta a statusline numa cor bem diferente — trocar de modo já é visualmente "arco-íris" sozinho.
+
+---
+
+# 39. Setas do rodapé no formato da referência
+
+Trocamos os separadores simples (`>`/`<`) por `›`/`‹` — aspas angulares finas, visual mais parecido com o que você mandou de referência. São caracteres Unicode comuns (não são exclusivos de Nerd Font), mas se ainda assim aparecerem estranhos no seu terminal, dá pra voltar pro `>`/`<` puro-ASCII editando duas linhas em `~/.vim/config/appearance.vim` (tem um comentário lá mostrando exatamente onde).
+
+---
+
+
 
 Depois da instalação:
 
@@ -1649,7 +1694,7 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 
 ---
 
-# 37. Resumo rápido
+# 40. Resumo rápido
 
 ```text
 ┌───────────────────────────────────────────┐
@@ -1664,6 +1709,7 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 │ F7       Compilar + Executar              │
 │ F8       Testar input.txt                 │
 │ F9       Terminal                         │
+│ F12      Folha de atalhos                 │
 │ Ctrl+S   Salvar                           │
 │ Ctrl+H   Janela esquerda                  │
 │ Ctrl+J   Janela abaixo                    │
@@ -1685,7 +1731,7 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 
 ---
 
-# 38. Ideia do workflow
+# 41. Ideia do workflow
 
 A intenção é que, durante uma competição, você consiga fazer:
 
@@ -1726,7 +1772,7 @@ O objetivo é deixar o máximo possível do processo de competição dentro do V
 
 ---
 
-# 39. Próximas extensões possíveis
+# 42. Próximas extensões possíveis
 
 O projeto foi estruturado para receber mais ferramentas futuramente.
 
@@ -1752,7 +1798,7 @@ Possíveis extensões:
 
 ---
 
-# 40. Filosofia da configuração
+# 43. Filosofia da configuração
 
 A configuração não tenta transformar o Vim em uma cópia do VS Code.
 

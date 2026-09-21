@@ -165,6 +165,8 @@ source ~/.vim/config/appearance.vim
 source ~/.vim/config/explorer.vim
 source ~/.vim/config/search.vim
 source ~/.vim/config/coc.vim
+source ~/.vim/config/runner.vim
 source ~/.vim/config/cpp.vim
 source ~/.vim/config/java.vim
+source ~/.vim/config/cheatsheet.vim
 source ~/.vim/config/keymaps.vim

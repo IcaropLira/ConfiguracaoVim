@@ -2,27 +2,27 @@
 " Tema do vim-airline "geraldo" — Geraldo
 " ============================================================
 
-let s:black = '#1b1016'
-let s:panel = '#251720'
-let s:panel2 = '#301e2a'
-let s:fg = '#ffeef5'
-let s:fg_dim = '#d9a8bf'
+let s:black      = '#fdf3f7'
+let s:panel      = '#f8e8ef'
+let s:panel2     = '#f2dce8'
+let s:fg         = '#4a2c3d'
+let s:fg_dim     = '#8a6478'
 
-let s:red = '#ff6fa8'
-let s:red_bright = '#ff8fc0'
-let s:red_dim = '#b8407a'
-let s:red_soft = '#ff9ecf'
-let s:amber = '#f2c14e'
+let s:red        = '#f2a8c9'
+let s:red_bright = '#f8c6dd'
+let s:red_dim    = '#d47fa8'
+let s:red_soft   = '#eab8d9'
+let s:amber      = '#f0d49f'
 
-let s:t_black  = 233
-let s:t_panel  = 234
-let s:t_fg     = 255
-let s:t_fgdim  = 181
-let s:t_red        = 205
-let s:t_red_bright = 211
-let s:t_red_dim    = 132
-let s:t_red_soft   = 218
-let s:t_amber      = 215
+let s:t_black  = 231
+let s:t_panel  = 255
+let s:t_fg     = 237
+let s:t_fgdim  = 96
+let s:t_red        = 218
+let s:t_red_bright = 224
+let s:t_red_dim    = 175
+let s:t_red_soft   = 182
+let s:t_amber      = 223
 
 let g:airline#themes#geraldo#palette = {}
 
@@ -41,9 +41,9 @@ let s:V2 = s:N2
 let s:V3 = [ s:red_soft, s:black, s:t_red_soft, s:t_black ]
 let g:airline#themes#geraldo#palette.visual = airline#themes#generate_color_map(s:V1, s:V2, s:V3)
 
-let s:R1 = [ s:fg, s:red, s:t_fg, s:t_red ]
+let s:R1 = [ s:fg, s:red_dim, s:t_fg, s:t_red_dim ]
 let s:R2 = s:N2
-let s:R3 = [ s:red, s:black, s:t_red, s:t_black ]
+let s:R3 = [ s:red_dim, s:black, s:t_red_dim, s:t_black ]
 let g:airline#themes#geraldo#palette.replace = airline#themes#generate_color_map(s:R1, s:R2, s:R3)
 
 let s:IA1 = [ s:fg_dim, s:black, s:t_fgdim, s:t_black ]

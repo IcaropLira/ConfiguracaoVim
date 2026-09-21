@@ -16,9 +16,10 @@ function! CompileCpp() abort
     write
     let l:file = expand('%:p')
     let l:output = expand('%:p:r')
-
-    execute '!g++ -std=c++17 -O2 -Wall -Wextra ' .
-                \ shellescape(l:file) . ' -o ' . shellescape(l:output)
+    let l:cmd = 'g++ -std=c++17 -O2 -Wall -Wextra ' .
+                \ shellescape(l:file) . ' -o ' . shellescape(l:output) .
+                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+    call IcaroRunInTerminal(l:cmd)
 endfunction
 
 function! RunCpp() abort
@@ -30,17 +31,20 @@ function! RunCpp() abort
         return
     endif
 
-    execute '!'.shellescape(l:output)
+    let l:cmd = shellescape(l:output) .
+                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+    call IcaroRunInTerminal(l:cmd)
 endfunction
 
 function! BuildRunCpp() abort
     write
     let l:file = expand('%:p')
     let l:output = expand('%:p:r')
-
-    execute '!g++ -std=c++17 -O2 -Wall -Wextra ' .
+    let l:cmd = 'g++ -std=c++17 -O2 -Wall -Wextra ' .
                 \ shellescape(l:file) . ' -o ' . shellescape(l:output) .
-                \ ' && ' . shellescape(l:output)
+                \ ' && ' . shellescape(l:output) .
+                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+    call IcaroRunInTerminal(l:cmd)
 endfunction
 
 function! TestCpp() abort
@@ -53,10 +57,11 @@ function! TestCpp() abort
 
     let l:file = expand('%:p')
     let l:output = expand('%:p:r')
-
-    execute '!g++ -std=c++17 -O2 -Wall -Wextra ' .
+    let l:cmd = 'g++ -std=c++17 -O2 -Wall -Wextra ' .
                 \ shellescape(l:file) . ' -o ' . shellescape(l:output) .
-                \ ' && ' . shellescape(l:output) . ' < input.txt'
+                \ ' && ' . shellescape(l:output) . ' < input.txt' .
+                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+    call IcaroRunInTerminal(l:cmd)
 endfunction
 
 " Atalhos locais só dentro de arquivos .cpp (não conflita com Java)

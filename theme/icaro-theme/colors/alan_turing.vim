@@ -12,25 +12,27 @@ let g:colors_name = 'alan_turing'
 " ------------------------------------------------------------
 " Paleta
 " ------------------------------------------------------------
-let s:bg0        = ['#171521', 234]
-let s:bg1        = ['#211c2d', 235]
-let s:bg2        = ['#2b2440', 236]
-let s:bg3        = ['#3b3153', 238]
-let s:border     = ['#59486e', 240]
-let s:fg0        = ['#f4eafa', 255]
-let s:fg1        = ['#b8a9c9', 146]
-let s:comment    = ['#8d7c9f', 103]
+let s:bg0      = ['#0b0b10', 232]
+let s:bg1      = ['#131318', 233]
+let s:bg2      = ['#1c1c24', 234]
+let s:bg3      = ['#26262f', 235]
+let s:border   = ['#38384a', 237]
+let s:fg0      = ['#f5f5fa', 231]
+let s:fg1      = ['#9a9ab0', 247]
+let s:comment  = ['#75759a', 244]
 
-let s:red        = ['#e85aa8', 169]
-let s:red_bright = ['#ff76bd', 211]
-let s:red_dim    = ['#a94691', 132]
-let s:red_soft   = ['#c56adf', 170]
+let s:red        = ['#ff3b3b', 203]
+let s:red_bright = ['#ff9d3b', 215]
+let s:red_dim    = ['#8b3bff', 99]
+let s:red_soft   = ['#ff3bcb', 206]
 
-let s:green      = ['#8fd6a3', 115]
-let s:amber      = ['#f2cf73', 221]
-let s:blue       = ['#a98be8', 140]
-let s:cyan       = ['#6ec8d8', 80]
-let s:orange     = ['#e69ad2', 176]
+let s:green  = ['#3bff6e', 83]
+let s:amber  = ['#fff23b', 227]
+let s:blue   = ['#3b9dff', 75]
+let s:cyan   = ['#3bfff2', 87]
+let s:orange = ['#ff9d3b', 215]
+
+" ------------------------------------------------------------
 " Helper
 " ------------------------------------------------------------
 function! s:hi(group, fg, bg, style) abort

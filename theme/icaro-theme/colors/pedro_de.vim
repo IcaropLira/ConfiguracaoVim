@@ -12,25 +12,25 @@ let g:colors_name = 'pedro_de'
 " ------------------------------------------------------------
 " Paleta
 " ------------------------------------------------------------
-let s:bg0      = ['#f5f5f2', 255]
-let s:bg1      = ['#ebebe6', 255]
+let s:bg0      = ['#f6f6f3', 255]
+let s:bg1      = ['#ececE7', 255]
 let s:bg2      = ['#e0e0da', 253]
-let s:bg3      = ['#d0d8e8', 253]
-let s:border   = ['#c8c8c0', 251]
-let s:fg0      = ['#2b2b28', 235]
-let s:fg1      = ['#6b6b64', 242]
-let s:comment  = ['#8a8a80', 102]
+let s:bg3      = ['#d3d3cc', 252]
+let s:border   = ['#bdbdb3', 250]
+let s:fg0      = ['#2a2a26', 235]
+let s:fg1      = ['#6b6b62', 242]
+let s:comment  = ['#8f8f84', 245]
 
-let s:red        = ['#3b6ea5', 61]
-let s:red_bright = ['#4d84c4', 68]
-let s:red_dim    = ['#2a4f78', 24]
-let s:red_soft   = ['#6a4fa5', 61]
+let s:red        = ['#5a5a50', 240]
+let s:red_bright = ['#7a7a6e', 243]
+let s:red_dim    = ['#3d3d36', 237]
+let s:red_soft   = ['#96968a', 246]
 
-let s:green  = ['#3f8a4c', 65]
-let s:amber  = ['#b8860b', 136]
-let s:blue   = ['#3b6ea5', 61]
-let s:cyan   = ['#2a8a8a', 30]
-let s:orange = ['#c56a1f', 166]
+let s:green  = ['#4a8a55', 65]
+let s:amber  = ['#a9862a', 136]
+let s:blue   = ['#7d8a99', 245]
+let s:cyan   = ['#5f9a92', 66]
+let s:orange = ['#b06a3c', 131]
 
 " ------------------------------------------------------------
 " Helper

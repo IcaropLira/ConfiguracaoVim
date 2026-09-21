@@ -60,16 +60,18 @@ function! CompileJava() abort
     write
     let l:file = expand('%:p')
     let l:dir = expand('%:p:h')
-
-    execute '!javac -d ' . shellescape(l:dir) . ' ' . shellescape(l:file)
+    let l:cmd = 'javac -d ' . shellescape(l:dir) . ' ' . shellescape(l:file) .
+                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+    call IcaroRunInTerminal(l:cmd)
 endfunction
 
 function! RunJava() abort
     write
     let l:dir = expand('%:p:h')
     let l:class = s:JavaMainClass()
-
-    execute '!java -cp ' . shellescape(l:dir) . ' ' . l:class
+    let l:cmd = 'java -cp ' . shellescape(l:dir) . ' ' . l:class .
+                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+    call IcaroRunInTerminal(l:cmd)
 endfunction
 
 function! BuildRunJava() abort
@@ -77,9 +79,10 @@ function! BuildRunJava() abort
     let l:file = expand('%:p')
     let l:dir = expand('%:p:h')
     let l:class = s:JavaMainClass()
-
-    execute '!javac -d ' . shellescape(l:dir) . ' ' . shellescape(l:file) .
-                \ ' && java -cp ' . shellescape(l:dir) . ' ' . l:class
+    let l:cmd = 'javac -d ' . shellescape(l:dir) . ' ' . shellescape(l:file) .
+                \ ' && java -cp ' . shellescape(l:dir) . ' ' . l:class .
+                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+    call IcaroRunInTerminal(l:cmd)
 endfunction
 
 function! TestJava() abort
@@ -93,9 +96,10 @@ function! TestJava() abort
     let l:file = expand('%:p')
     let l:dir = expand('%:p:h')
     let l:class = s:JavaMainClass()
-
-    execute '!javac -d ' . shellescape(l:dir) . ' ' . shellescape(l:file) .
-                \ ' && java -cp ' . shellescape(l:dir) . ' ' . l:class . ' < input.txt'
+    let l:cmd = 'javac -d ' . shellescape(l:dir) . ' ' . shellescape(l:file) .
+                \ ' && java -cp ' . shellescape(l:dir) . ' ' . l:class . ' < input.txt' .
+                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+    call IcaroRunInTerminal(l:cmd)
 endfunction
 
 " Atalhos locais só dentro de arquivos .java (não conflita com C++)

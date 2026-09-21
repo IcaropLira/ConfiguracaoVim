@@ -17,6 +17,9 @@ inoremap <C-s> <Esc>:write<CR>a
 " Terminal
 nnoremap <F9> :terminal<CR>
 
+" Folha de atalhos (aperta de novo, ou qualquer tecla, pra fechar)
+nnoremap <F12> :call ToggleCheatsheet()<CR>
+
 " Navegação entre janelas
 nnoremap <C-h> <C-w>h
 nnoremap <C-j> <C-w>j
@@ -51,6 +54,7 @@ inoremap <silent> <F2> <C-o>:NERDTreeToggle<CR>
 inoremap <silent> <F3> <C-o>:call ToggleInlayHints()<CR>
 inoremap <silent> <F4> <C-o>:call ToggleAutocomplete()<CR>
 inoremap <silent> <F9> <C-o>:terminal<CR>
+inoremap <silent> <F12> <C-o>:call ToggleCheatsheet()<CR>
 
 " ------------------------------------------------------------
 " Shift+Backspace (ou Ctrl+Backspace, dependendo do terminal) apaga

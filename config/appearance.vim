@@ -75,15 +75,16 @@ augroup END
 " separadores visuais pra cada caso. g:airline_theme quem decide é o
 " config/themes.vim (F1 troca).
 if !get(g:, 'icaro_use_nerd_font', 0)
-    " Sem Nerd Font: separadores em formato de seta (> <). São ASCII
-    " puro de propósito — em testes, caracteres tipo ▶/◀ embaralharam
-    " dependendo da fonte/locale do terminal. Se seu terminal tiver
-    " boa fonte Unicode e você quiser a seta triangular "de verdade",
-    " troque as duas linhas abaixo por '▶' e '◀'.
-    let g:airline_left_sep = '>'
-    let g:airline_right_sep = '<'
-    let g:airline_left_alt_sep = '>'
-    let g:airline_right_alt_sep = '<'
+    " Sem Nerd Font: separadores em formato de seta fina (‹ ›) — igual
+    " ao visual que você mandou de referência. São caracteres Unicode
+    " bem comuns (aspas angulares), suportados por praticamente
+    " qualquer fonte, sem precisar de Nerd Font. Se ainda assim
+    " embaralhar no seu terminal, troque as 4 linhas abaixo por
+    " '>' e '<' (ASCII puro, sempre funciona em qualquer lugar).
+    let g:airline_left_sep = '›'
+    let g:airline_right_sep = '‹'
+    let g:airline_left_alt_sep = '›'
+    let g:airline_right_alt_sep = '‹'
 endif
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'

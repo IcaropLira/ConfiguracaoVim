@@ -2,26 +2,26 @@
 " Tema do vim-airline "pedro_de" — Pedro de...
 " ============================================================
 
-let s:black      = '#f5f5f2'
-let s:panel      = '#ebebe6'
+let s:black      = '#f6f6f3'
+let s:panel      = '#ececE7'
 let s:panel2     = '#e0e0da'
-let s:fg         = '#2b2b28'
-let s:fg_dim     = '#6b6b64'
+let s:fg         = '#2a2a26'
+let s:fg_dim     = '#6b6b62'
 
-let s:red        = '#3b6ea5'
-let s:red_bright = '#4d84c4'
-let s:red_dim    = '#2a4f78'
-let s:red_soft   = '#6a4fa5'
-let s:amber      = '#b8860b'
+let s:red        = '#5a5a50'
+let s:red_bright = '#7a7a6e'
+let s:red_dim    = '#3d3d36'
+let s:red_soft   = '#96968a'
+let s:amber      = '#a9862a'
 
 let s:t_black  = 255
 let s:t_panel  = 255
 let s:t_fg     = 235
 let s:t_fgdim  = 242
-let s:t_red        = 61
-let s:t_red_bright = 68
-let s:t_red_dim    = 24
-let s:t_red_soft   = 61
+let s:t_red        = 240
+let s:t_red_bright = 243
+let s:t_red_dim    = 237
+let s:t_red_soft   = 246
 let s:t_amber      = 136
 
 let g:airline#themes#pedro_de#palette = {}
@@ -41,9 +41,9 @@ let s:V2 = s:N2
 let s:V3 = [ s:red_soft, s:black, s:t_red_soft, s:t_black ]
 let g:airline#themes#pedro_de#palette.visual = airline#themes#generate_color_map(s:V1, s:V2, s:V3)
 
-let s:R1 = [ s:fg, s:red, s:t_fg, s:t_red ]
+let s:R1 = [ s:fg, s:red_dim, s:t_fg, s:t_red_dim ]
 let s:R2 = s:N2
-let s:R3 = [ s:red, s:black, s:t_red, s:t_black ]
+let s:R3 = [ s:red_dim, s:black, s:t_red_dim, s:t_black ]
 let g:airline#themes#pedro_de#palette.replace = airline#themes#generate_color_map(s:R1, s:R2, s:R3)
 
 let s:IA1 = [ s:fg_dim, s:black, s:t_fgdim, s:t_black ]
