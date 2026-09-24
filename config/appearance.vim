@@ -25,13 +25,16 @@ set signcolumn=yes
 " terceiro tom mais sutil). Assim os blocos já nascem combinando com
 " qualquer tema, inclusive os criados via :ThemeNew.
 " ------------------------------------------------------------
-if get(g:, 'icaro_use_nerd_font', 0)
-    let s:wb_sep_r = ''
-    let s:wb_sep_l = ''
+" Glifos oficiais da família Powerline.
+" Eles formam uma junção contínua entre os blocos, ao contrário de ▶/◀.
+" Se a fonte não possuir esses glifos, a configuração antiga continua
+" disponível com g:icaro_powerline = 0.
+let g:icaro_powerline = get(g:, 'icaro_powerline', 1)
+
+if g:icaro_powerline
+    let s:wb_sep_r = ''
+    let s:wb_sep_l = ''
 else
-    " Fallback sem Nerd Font: triângulos Unicode comuns. Não encaixam
-    " tão perfeitamente sem "buraco" quanto os glifos powerline, mas
-    " já dão o efeito de bloco/seta em qualquer fonte monoespaçada.
     let s:wb_sep_r = '▶'
     let s:wb_sep_l = '◀'
 endif
@@ -66,6 +69,7 @@ function! IcaroDefineWinBarBlocks() abort
     " uma seta sólida "empurrando" um bloco para dentro do outro.
     call s:HiSet('WinBarSep12', l:s1bg, l:s1bgc, l:s2bg, l:s2bgc, 'NONE')
     call s:HiSet('WinBarSep23', l:s2bg, l:s2bgc, l:s3bg, l:s3bgc, 'NONE')
+    call s:HiSet('WinBarSep32', l:s3bg, l:s3bgc, l:s2bg, l:s2bgc, 'NONE')
 endfunction
 
 if exists('+winbar')
@@ -76,16 +80,69 @@ if exists('+winbar')
         autocmd ColorScheme * call IcaroDefineWinBarBlocks()
     augroup END
 
-    " Cabeçalho: [MODO]▶[tema › arquivo]  ...............  [branch]◀[crédito]
+    " Cabeçalho: blocos reais de Powerline.
+    " Esquerda = modo + tema/arquivo | direita = branch + crédito.
     let &winbar = '%#WinBarSeg1# %{IcaroModeLabel()} '
           \ . '%#WinBarSep12#' . s:wb_sep_r
-          \ . '%#WinBarSeg2# %{IcaroThemeBadge()} › %f%m '
+          \ . '%#WinBarSeg2# %{IcaroThemeBadge()}  %f%m '
           \ . '%='
-          \ . '%#WinBarSep23#' . s:wb_sep_l
+          \ . '%#WinBarSep32#' . s:wb_sep_l
           \ . '%#WinBarSeg3# %{IcaroGitBranch()} '
-          \ . '%#WinBarSep12#' . s:wb_sep_l
+          \ . '%#WinBarSep32#' . s:wb_sep_l
           \ . '%#WinBarSeg2# %{CreditFooter()} '
 endif
+
+" ------------------------------------------------------------
+" Contraste inteligente dos popups
+" ------------------------------------------------------------
+" Alguns temas têm uma paleta visual clara mesmo estando marcados como
+" background=dark. Em vez de depender desse flag, olhamos a cor real do
+" fundo do popup. Assim:
+"   fundo escuro -> texto claro
+"   fundo claro  -> texto escuro
+" Isso vale para o menu do COC, popup de tema e listas do Vim.
+function! s:PopupLuma(hex) abort
+    let l:h = substitute(a:hex, '^#', '', '')
+    if strlen(l:h) != 6
+        return -1
+    endif
+    let l:r = str2nr(strpart(l:h, 0, 2), 16)
+    let l:g = str2nr(strpart(l:h, 2, 2), 16)
+    let l:b = str2nr(strpart(l:h, 4, 2), 16)
+    return (0.2126 * l:r) + (0.7152 * l:g) + (0.0722 * l:b)
+endfunction
+
+function! IcaroFixPopupContrast() abort
+    let l:normal_fg = synIDattr(synIDtrans(hlID('Normal')), 'fg#', 'gui')
+    let l:pmenu_bg = synIDattr(synIDtrans(hlID('Pmenu')), 'bg#', 'gui')
+    let l:sel_bg = synIDattr(synIDtrans(hlID('PmenuSel')), 'bg#', 'gui')
+
+    if empty(l:normal_fg)
+        return
+    endif
+
+    " O Normal de cada tema já é a cor de texto correta para sua paleta.
+    " Usamos a luminosidade real do popup para não depender de
+    " background=dark/light (há temas claros marcados como dark).
+    if s:PopupLuma(l:pmenu_bg) >= 0
+        execute 'hi Pmenu guifg=' . l:normal_fg
+        execute 'hi CocFloating guifg=' . l:normal_fg
+        execute 'hi Float guifg=' . l:normal_fg
+    endif
+
+    " A linha selecionada pode ter um fundo diferente do popup principal.
+    " Ela recebe o mesmo tratamento, usando o fg normal do tema.
+    if !empty(l:sel_bg)
+        execute 'hi PmenuSel guifg=' . l:normal_fg
+        execute 'hi PmenuMatchSel guifg=' . l:normal_fg
+    endif
+endfunction
+
+augroup icaro_popup_contrast
+    autocmd!
+    autocmd ColorScheme * call IcaroFixPopupContrast()
+augroup END
+call IcaroFixPopupContrast()
 
 " ------------------------------------------------------------
 " Tela inicial (quando o vim abre sem nenhum arquivo). De propósito
@@ -151,10 +208,17 @@ if !get(g:, 'icaro_use_nerd_font', 0)
     " (g:icaro_use_nerd_font = 1) essas linhas nem rodam: o Airline usa
     " os glifos powerline de verdade, que encaixam sem nenhum espaço
     " entre um bloco e o outro (g:airline_powerline_fonts, no vimrc).
-    let g:airline_left_sep = '▶'
-    let g:airline_right_sep = '◀'
-    let g:airline_left_alt_sep = '▶'
-    let g:airline_right_alt_sep = '◀'
+    if get(g:, 'icaro_powerline', 1)
+        let g:airline_left_sep = ''
+        let g:airline_right_sep = ''
+        let g:airline_left_alt_sep = ''
+        let g:airline_right_alt_sep = ''
+    else
+        let g:airline_left_sep = '▶'
+        let g:airline_right_sep = '◀'
+        let g:airline_left_alt_sep = '▶'
+        let g:airline_right_alt_sep = '◀'
+    endif
 endif
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'

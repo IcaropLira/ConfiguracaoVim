@@ -37,7 +37,7 @@ let g:icaro_themes = [
       \ {'id': 'ruiva',              'title': 'Ruiva',                'short': 'RUI', 'subtitle': 'Antiresenha'},
       \ {'id': 'baiana',             'title': 'Baiana',               'short': 'BAI', 'subtitle': 'Antiresenha'},
       \ {'id': 'do_mal',             'title': 'Do Mal',               'short': 'DM',  'subtitle': 'Antagonista'},
-      \ {'id': 'sofia',              'title': 'Paz',                  'short': 'SOF', 'subtitle': 'Antiresenha'},
+      \ {'id': 'sofia',              'title': 'Paz',                  'short': 'PAZ', 'subtitle': 'Antiresenha'},
       \ {'id': 'guerra',             'title': 'Guerra',               'short': 'WAR', 'subtitle': 'Antiresenha+'},
       \ {'id': 'soares',             'title': 'Soares',               'short': 'SOA', 'subtitle': 'Pensão de Pet+'},
       \ {'id': 'biscoitinho',        'title': 'Biscoitinho',           'short': 'BIS', 'subtitle': 'Antagonista'},

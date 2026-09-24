@@ -20,6 +20,9 @@ if filereadable(expand('~/.vim/config/local.vim'))
     source ~/.vim/config/local.vim
 endif
 let g:icaro_use_nerd_font = get(g:, 'icaro_use_nerd_font', 0)
+" Powerline pode ser usado independentemente dos ícones da Nerd Font.
+" O padrão é 1 para manter winbar/statusline com os separadores reais.
+let g:icaro_powerline = get(g:, 'icaro_powerline', 1)
 
 " ------------------------------------------------------------
 " Persistência dos toggles (autocomplete / dicas de parâmetro).
@@ -144,6 +147,15 @@ if g:icaro_use_nerd_font
 else
     let g:webdevicons_enable = 0
     let g:airline_powerline_fonts = 0
+endif
+
+" Powerline da barra inferior é independente dos ícones da Nerd Font.
+if get(g:, 'icaro_powerline', 1)
+    let g:airline_powerline_fonts = 1
+    let g:airline_left_sep = ''
+    let g:airline_right_sep = ''
+    let g:airline_left_alt_sep = ''
+    let g:airline_right_alt_sep = ''
 endif
 
 silent! packadd! coc.nvim
