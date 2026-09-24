@@ -1,28 +1,28 @@
 " ============================================================
-" Tema do vim-airline "geraldo" — Geraldo
+" Tema do vim-airline "do_mal"
 " ============================================================
 
-let s:black = '#020602'
-let s:panel = '#050b05'
-let s:panel2 = '#0b120b'
-let s:fg = '#dfffe1'
-let s:fg_dim = '#7dbb82'
+let s:black = '#101010'
+let s:panel = '#181818'
+let s:panel2 = '#232323'
+let s:fg = '#c0ffc0'
+let s:fg_dim = '#c0c8c0'
 
-let s:red = '#00e84a'
-let s:red_bright = '#22ff63'
-let s:red_dim = '#008c2b'
-let s:red_soft = '#00b83d'
-let s:amber = '#d8e66f'
+let s:red = '#00ff00'
+let s:red_bright = '#56ff56'
+let s:red_dim = '#044e04'
+let s:red_soft = '#019d01'
+let s:amber = '#dae900'
 
 let s:t_black  = 233
 let s:t_panel  = 234
-let s:t_fg     = 255
-let s:t_fgdim  = 181
-let s:t_red        = 205
-let s:t_red_bright = 211
-let s:t_red_dim    = 132
-let s:t_red_soft   = 218
-let s:t_amber      = 215
+let s:t_fg     = 157
+let s:t_fgdim  = 251
+let s:t_red        = 46
+let s:t_red_bright = 83
+let s:t_red_dim    = 22
+let s:t_red_soft   = 34
+let s:t_amber      = 184
 
 let g:airline#themes#do_mal#palette = {}
 

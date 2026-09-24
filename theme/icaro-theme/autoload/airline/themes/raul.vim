@@ -1,28 +1,28 @@
 " ============================================================
-" Tema do vim-airline "raul" — Raul
+" Tema do vim-airline "raul"
 " ============================================================
 
-let s:black      = '#0a0a0a'
-let s:panel      = '#141414'
-let s:panel2     = '#1e1e1e'
-let s:fg         = '#e8e8e8'
-let s:fg_dim     = '#999999'
+let s:black = '#302a2a'
+let s:panel = '#3a3232'
+let s:panel2 = '#453b3b'
+let s:fg = '#ddd6c0'
+let s:fg_dim = '#aaaa99'
 
-let s:red        = '#a8a8a8'
-let s:red_bright = '#e0e0e0'
-let s:red_dim    = '#555555'
-let s:red_soft   = '#8a1616'
-let s:amber      = '#b8973a'
+let s:red = '#9d9080'
+let s:red_bright = '#ccc0aa'
+let s:red_dim = '#996644'
+let s:red_soft = '#909a9f'
+let s:amber = '#ff9800'
 
-let s:t_black  = 232
-let s:t_panel  = 233
-let s:t_fg     = 254
-let s:t_fgdim  = 247
-let s:t_red        = 248
-let s:t_red_bright = 254
-let s:t_red_dim    = 240
-let s:t_red_soft   = 88
-let s:t_amber      = 137
+let s:t_black  = 236
+let s:t_panel  = 236
+let s:t_fg     = 187
+let s:t_fgdim  = 248
+let s:t_red        = 138
+let s:t_red_bright = 181
+let s:t_red_dim    = 95
+let s:t_red_soft   = 246
+let s:t_amber      = 208
 
 let g:airline#themes#raul#palette = {}
 

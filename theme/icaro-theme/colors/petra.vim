@@ -1,6 +1,6 @@
 " ============================================================
-" mateus_sao_paulino.vim — colorscheme "mateus_sao_paulino" (Configuracao Vim Icaro Lira)
-" Paleta baseada em São Paulo FC (tricolor: vermelho #E30613, branco, preto)
+" petra.vim — colorscheme "petra" (Configuracao Vim Icaro Lira)
+" Paleta baseada em mipmip/vim-petra
 " ============================================================
 
 set background=dark
@@ -8,30 +8,30 @@ hi clear
 if exists('syntax_on')
     syntax reset
 endif
-let g:colors_name = 'mateus_sao_paulino'
+let g:colors_name = 'petra'
 
 " ------------------------------------------------------------
 " Paleta
 " ------------------------------------------------------------
-let s:bg0        = ['#0d0d0d', 232]
-let s:bg1        = ['#1a1a1a', 234]
-let s:bg2        = ['#242424', 235]
-let s:bg3        = ['#3a1015', 234]
-let s:border     = ['#333333', 236]
-let s:fg0        = ['#f5f5f5', 255]
-let s:fg1        = ['#cfcfcf', 252]
-let s:comment    = ['#7a7a7a', 243]
+let s:bg0        = ['#372725', 236]
+let s:bg1        = ['#483935', 237]
+let s:bg2        = ['#2e201f', 235]
+let s:bg3        = ['#a40042', 125]
+let s:border     = ['#5c4a45', 239]
+let s:fg0        = ['#e6e1c4', 253]
+let s:fg1        = ['#6a5d53', 59]
+let s:comment    = ['#6b4e32', 239]
 
-let s:red        = ['#E30613', 160]
-let s:red_bright = ['#ff2030', 197]
-let s:red_dim    = ['#8c0410', 88]
-let s:red_soft   = ['#b3323f', 131]
+let s:red        = ['#ef5d32', 203]
+let s:red_bright = ['#efac32', 215]
+let s:red_dim    = ['#a3401f', 130]
+let s:red_soft   = ['#c4784a', 173]
 
-let s:green      = ['#2e7d32', 239]
-let s:amber      = ['#e0a30e', 178]
-let s:blue       = ['#1e5fae', 25]
-let s:cyan       = ['#1697a6', 31]
-let s:orange     = ['#e0651a', 166]
+let s:green      = ['#d9d762', 185]
+let s:amber      = ['#efac32', 215]
+let s:blue       = ['#6c99bb', 67]
+let s:cyan       = ['#a40042', 125]
+let s:orange     = ['#efac32', 215]
 " ------------------------------------------------------------
 function! s:hi(group, fg, bg, style) abort
     let l:cmd = 'hi ' . a:group

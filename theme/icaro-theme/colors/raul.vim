@@ -1,5 +1,6 @@
 " ============================================================
-" raul.vim — colorscheme "Raul" (Configuracao Vim Icaro Lira)
+" raul.vim — colorscheme "raul" (Configuracao Vim Icaro Lira)
+" Paleta baseada em vim-scripts/Nefertiti
 " ============================================================
 
 set background=dark
@@ -12,28 +13,25 @@ let g:colors_name = 'raul'
 " ------------------------------------------------------------
 " Paleta
 " ------------------------------------------------------------
-let s:bg0      = ['#0a0a0a', 232]
-let s:bg1      = ['#141414', 233]
-let s:bg2      = ['#1e1e1e', 234]
-let s:bg3      = ['#2a2a2a', 235]
-let s:border   = ['#3a3a3a', 237]
-let s:fg0      = ['#e8e8e8', 254]
-let s:fg1      = ['#999999', 247]
-let s:comment  = ['#666666', 241]
+let s:bg0        = ['#302a2a', 236]
+let s:bg1        = ['#3a3232', 236]
+let s:bg2        = ['#453b3b', 237]
+let s:bg3        = ['#768798', 102]
+let s:border     = ['#5a504a', 239]
+let s:fg0        = ['#ddd6c0', 187]
+let s:fg1        = ['#aaaa99', 248]
+let s:comment    = ['#707070', 242]
 
-let s:red        = ['#a8a8a8', 248]
-let s:red_bright = ['#e0e0e0', 254]
-let s:red_dim    = ['#555555', 240]
-let s:red_soft   = ['#8a1616', 88]
+let s:red        = ['#9d9080', 138]
+let s:red_bright = ['#ccc0aa', 181]
+let s:red_dim    = ['#996644', 95]
+let s:red_soft   = ['#909a9f', 246]
 
-let s:green  = ['#5a7a5a', 65]
-let s:amber  = ['#b8973a', 137]
-let s:blue   = ['#5a6a7a', 60]
-let s:cyan   = ['#5a8a8a', 66]
-let s:orange = ['#a85a2a', 130]
-
-" ------------------------------------------------------------
-" Helper
+let s:green      = ['#aaaa99', 248]
+let s:amber      = ['#ff9800', 208]
+let s:blue       = ['#768798', 102]
+let s:cyan       = ['#87a0a0', 109]
+let s:orange     = ['#ddccA8', 187]
 " ------------------------------------------------------------
 function! s:hi(group, fg, bg, style) abort
     let l:cmd = 'hi ' . a:group

@@ -1,28 +1,28 @@
 " ============================================================
-" Tema do vim-airline "mateus_sao_paulino" — Mateus Sao Paulino
+" Tema do vim-airline "mateus_sao_paulino"
 " ============================================================
 
-let s:black = '#f7f5f2'
-let s:panel = '#ece9e4'
-let s:panel2 = '#dedad4'
-let s:fg = '#211d1a'
-let s:fg_dim = '#625a54'
+let s:black = '#0d0d0d'
+let s:panel = '#1a1a1a'
+let s:panel2 = '#242424'
+let s:fg = '#f5f5f5'
+let s:fg_dim = '#cfcfcf'
 
-let s:red = '#a3122c'
-let s:red_bright = '#cc1f3d'
-let s:red_dim = '#6e0d1e'
-let s:red_soft = '#1a1a1a'
-let s:amber = '#8a6500'
+let s:red = '#E30613'
+let s:red_bright = '#ff2030'
+let s:red_dim = '#8c0410'
+let s:red_soft = '#b3323f'
+let s:amber = '#e0a30e'
 
-let s:t_black  = 255
-let s:t_panel  = 255
-let s:t_fg     = 234
-let s:t_fgdim  = 240
-let s:t_red        = 124
-let s:t_red_bright = 161
-let s:t_red_dim    = 52
-let s:t_red_soft   = 234
-let s:t_amber      = 136
+let s:t_black  = 232
+let s:t_panel  = 234
+let s:t_fg     = 255
+let s:t_fgdim  = 252
+let s:t_red        = 160
+let s:t_red_bright = 197
+let s:t_red_dim    = 88
+let s:t_red_soft   = 131
+let s:t_amber      = 178
 
 let g:airline#themes#mateus_sao_paulino#palette = {}
 

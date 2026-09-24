@@ -1,5 +1,6 @@
 " ============================================================
-" geraldo.vim — colorscheme "Geraldo" (Configuracao Vim Icaro Lira)
+" do_mal.vim — colorscheme "do_mal" (Configuracao Vim Icaro Lira)
+" Paleta baseada em luisiacc/the-matrix.nvim
 " ============================================================
 
 set background=dark
@@ -12,25 +13,25 @@ let g:colors_name = 'do_mal'
 " ------------------------------------------------------------
 " Paleta
 " ------------------------------------------------------------
-let s:bg0        = ['#020602', 0]
-let s:bg1        = ['#050b05', 232]
-let s:bg2        = ['#0b120b', 233]
-let s:bg3        = ['#112011', 233]
-let s:border     = ['#1e3b1e', 235]
-let s:fg0        = ['#dfffe1', 194]
-let s:fg1        = ['#7dbb82', 108]
-let s:comment    = ['#4e7a53', 65]
+let s:bg0        = ['#101010', 233]
+let s:bg1        = ['#181818', 234]
+let s:bg2        = ['#232323', 235]
+let s:bg3        = ['#2b3a2b', 236]
+let s:border     = ['#3a4a3a', 238]
+let s:fg0        = ['#c0ffc0', 157]
+let s:fg1        = ['#c0c8c0', 251]
+let s:comment    = ['#6e8c6e', 65]
 
-let s:red        = ['#00e84a', 41]
-let s:red_bright = ['#22ff63', 47]
-let s:red_dim    = ['#008c2b', 28]
-let s:red_soft   = ['#00b83d', 35]
+let s:red        = ['#00ff00', 46]
+let s:red_bright = ['#56ff56', 83]
+let s:red_dim    = ['#044e04', 22]
+let s:red_soft   = ['#019d01', 34]
 
-let s:green      = ['#6cff88', 84]
-let s:amber      = ['#d8e66f', 185]
-let s:blue       = ['#5fc8ff', 81]
-let s:cyan       = ['#5fffe0', 86]
-let s:orange     = ['#ffad5a', 215]
+let s:green      = ['#93ff93', 120]
+let s:amber      = ['#dae900', 184]
+let s:blue       = ['#639a63', 65]
+let s:cyan       = ['#c0c8c0', 251]
+let s:orange     = ['#56ff56', 83]
 " ------------------------------------------------------------
 function! s:hi(group, fg, bg, style) abort
     let l:cmd = 'hi ' . a:group
