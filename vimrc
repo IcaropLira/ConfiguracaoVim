@@ -79,8 +79,11 @@ if !exists('*CreditFooter')
     endfunction
 endif
 
+let g:airline_section_a = '%{IcaroModeLabel()}'
+let g:airline_section_b = '%{IcaroGitBranch()}'
+let g:airline_section_c = '%{IcaroThemeBadge()} › %f%m'
 let g:airline_section_y = '%{AutocompleteStatus()} %{InlayHintStatus()}'
-let g:airline_section_z = '%#__accent_bold#%l%#__restore__#:%v %3p%%  %{CreditFooter()}'
+let g:airline_section_z = '%l:%v %3p%% ‹ %{IcaroClock()} ‹ %{CreditFooter()}'
 
 " Editor
 set number

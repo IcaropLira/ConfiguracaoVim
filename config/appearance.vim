@@ -12,8 +12,79 @@ let g:loaded_my_appearance = 1
 set numberwidth=4
 set signcolumn=yes
 
+" ------------------------------------------------------------
+" Blocos coloridos do winbar (estilo "powerline" em setas, igual à
+" referência) — em vez de um winbar de cor única com "›" como texto,
+" monta 3 blocos (MODO / tema+arquivo / branch) com fundos diferentes,
+" ligados por setas cheias.
+"
+" Em vez de criar cores novas (e ter que repetir isso nos 19 temas em
+" theme/icaro-theme/colors/*.vim), ele reaproveita 3 highlights que já
+" existem, idênticos, em TODO colorscheme do projeto: TabLineSel (cor
+" de destaque forte), WinBar (o tom já usado no topo) e Pmenu (um
+" terceiro tom mais sutil). Assim os blocos já nascem combinando com
+" qualquer tema, inclusive os criados via :ThemeNew.
+" ------------------------------------------------------------
+if get(g:, 'icaro_use_nerd_font', 0)
+    let s:wb_sep_r = ''
+    let s:wb_sep_l = ''
+else
+    " Fallback sem Nerd Font: triângulos Unicode comuns. Não encaixam
+    " tão perfeitamente sem "buraco" quanto os glifos powerline, mas
+    " já dão o efeito de bloco/seta em qualquer fonte monoespaçada.
+    let s:wb_sep_r = '▶'
+    let s:wb_sep_l = '◀'
+endif
+
+function! s:HiAttr(group, what) abort
+    let l:gui = synIDattr(synIDtrans(hlID(a:group)), a:what, 'gui')
+    let l:cterm = synIDattr(synIDtrans(hlID(a:group)), a:what, 'cterm')
+    return [empty(l:gui) ? 'NONE' : l:gui, empty(l:cterm) ? 'NONE' : l:cterm]
+endfunction
+
+function! s:HiSet(group, guifg, ctermfg, guibg, ctermbg, style) abort
+    execute 'hi ' . a:group
+          \ . ' guifg=' . a:guifg . ' ctermfg=' . a:ctermfg
+          \ . ' guibg=' . a:guibg . ' ctermbg=' . a:ctermbg
+          \ . ' gui=' . a:style . ' cterm=' . a:style
+endfunction
+
+function! IcaroDefineWinBarBlocks() abort
+    let [l:s1fg, l:s1fgc] = s:HiAttr('TabLineSel', 'fg#')
+    let [l:s1bg, l:s1bgc] = s:HiAttr('TabLineSel', 'bg#')
+    let [l:s2fg, l:s2fgc] = s:HiAttr('WinBar', 'fg#')
+    let [l:s2bg, l:s2bgc] = s:HiAttr('WinBar', 'bg#')
+    let [l:s3fg, l:s3fgc] = s:HiAttr('Pmenu', 'fg#')
+    let [l:s3bg, l:s3bgc] = s:HiAttr('Pmenu', 'bg#')
+
+    call s:HiSet('WinBarSeg1', l:s1fg, l:s1fgc, l:s1bg, l:s1bgc, 'bold')
+    call s:HiSet('WinBarSeg2', l:s2fg, l:s2fgc, l:s2bg, l:s2bgc, 'bold')
+    call s:HiSet('WinBarSeg3', l:s3fg, l:s3fgc, l:s3bg, l:s3bgc, 'NONE')
+
+    " A seta herda o fundo do bloco anterior como cor de "tinta" (fg) e
+    " o fundo do próximo bloco como fundo — é isso que cria a ilusão de
+    " uma seta sólida "empurrando" um bloco para dentro do outro.
+    call s:HiSet('WinBarSep12', l:s1bg, l:s1bgc, l:s2bg, l:s2bgc, 'NONE')
+    call s:HiSet('WinBarSep23', l:s2bg, l:s2bgc, l:s3bg, l:s3bgc, 'NONE')
+endfunction
+
 if exists('+winbar')
-    set winbar=%#WinBar#\ %f\ %m
+    call IcaroDefineWinBarBlocks()
+    augroup icaro_winbar_blocks
+        autocmd!
+        " Recalcula as cores dos blocos sempre que o tema muda (F1 / Shift+F1).
+        autocmd ColorScheme * call IcaroDefineWinBarBlocks()
+    augroup END
+
+    " Cabeçalho: [MODO]▶[tema › arquivo]  ...............  [branch]◀[crédito]
+    let &winbar = '%#WinBarSeg1# %{IcaroModeLabel()} '
+          \ . '%#WinBarSep12#' . s:wb_sep_r
+          \ . '%#WinBarSeg2# %{IcaroThemeBadge()} › %f%m '
+          \ . '%='
+          \ . '%#WinBarSep23#' . s:wb_sep_l
+          \ . '%#WinBarSeg3# %{IcaroGitBranch()} '
+          \ . '%#WinBarSep12#' . s:wb_sep_l
+          \ . '%#WinBarSeg2# %{CreditFooter()} '
 endif
 
 " ------------------------------------------------------------
@@ -70,21 +141,20 @@ augroup END
 " ------------------------------------------------------------
 " Airline (barra inferior)
 " ------------------------------------------------------------
-" g:airline_powerline_fonts e g:webdevicons_enable já foram decididos
-" no ~/.vimrc a partir de g:icaro_use_nerd_font — aqui só ajustamos os
-" separadores visuais pra cada caso. g:airline_theme quem decide é o
-" config/themes.vim (F1 troca).
+" A ideia aqui é reproduzir a leitura visual da referência:
+"   MODO › git:branch › [SIGLA] Tema › arquivo   ... posição / % / hora
+" O nome do tema aparece no rodapé e também no winbar do topo.
 if !get(g:, 'icaro_use_nerd_font', 0)
-    " Sem Nerd Font: separadores em formato de seta fina (‹ ›) — igual
-    " ao visual que você mandou de referência. São caracteres Unicode
-    " bem comuns (aspas angulares), suportados por praticamente
-    " qualquer fonte, sem precisar de Nerd Font. Se ainda assim
-    " embaralhar no seu terminal, troque as 4 linhas abaixo por
-    " '>' e '<' (ASCII puro, sempre funciona em qualquer lugar).
-    let g:airline_left_sep = '›'
-    let g:airline_right_sep = '‹'
-    let g:airline_left_alt_sep = '›'
-    let g:airline_right_alt_sep = '‹'
+    " Sem Nerd Font: usa triângulos Unicode comuns (▶/◀) em vez das
+    " setas powerline ( / ) — já dá o efeito de "bloco em seta" da
+    " referência, sem precisar instalar fonte nenhuma. Com Nerd Font
+    " (g:icaro_use_nerd_font = 1) essas linhas nem rodam: o Airline usa
+    " os glifos powerline de verdade, que encaixam sem nenhum espaço
+    " entre um bloco e o outro (g:airline_powerline_fonts, no vimrc).
+    let g:airline_left_sep = '▶'
+    let g:airline_right_sep = '◀'
+    let g:airline_left_alt_sep = '▶'
+    let g:airline_right_alt_sep = '◀'
 endif
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'
@@ -110,9 +180,15 @@ let g:airline#extensions#default#section_truncate_width = {
       \ 'warning2': 0,
       \ }
 
-" g:airline_section_y/z (indicador de autocomplete + créditozinho)
-" e as funções AutocompleteStatus()/CreditFooter() já são definidas
-" no topo do ~/.vimrc — de propósito, veja o comentário lá.
+" ------------------------------------------------------------
+" Conteúdo das seções do Airline.
+" ------------------------------------------------------------
+let g:airline_section_a = '%{IcaroModeLabel()}'
+let g:airline_section_b = '%{IcaroGitBranch()}'
+let g:airline_section_c = '%{IcaroThemeBadge()} › %f%m'
+let g:airline_section_x = airline#section#create(['coc_error_count', 'coc_warning_count', ' ', 'filetype'])
+let g:airline_section_y = '%{AutocompleteStatus()} %{InlayHintStatus()}'
+let g:airline_section_z = '%l:%v %3p%% ‹ %{IcaroClock()} ‹ %{CreditFooter()}'
 
 " ------------------------------------------------------------
 " Statusline usada caso o Airline não esteja instalado (fallback)
@@ -120,8 +196,12 @@ let g:airline#extensions#default#section_truncate_width = {
 if !exists('g:loaded_airline')
     set statusline=
     set statusline+=%#StatusLine#
-    set statusline+=\ %{&modified?'●\ ':''}
-    set statusline+=%f
+    set statusline+=\ %{IcaroModeLabel()}
+    set statusline+=\ ›\ 
+    set statusline+=%{IcaroGitBranch()}
+    set statusline+=\ ›\ 
+    set statusline+=%{IcaroThemeBadge()}
+    set statusline+=\ ›\ %f\ %m
     set statusline+=\ %=
     set statusline+=%{exists('*AutocompleteStatus')?AutocompleteStatus():''}
     set statusline+=\ │\ 
@@ -130,6 +210,7 @@ if !exists('g:loaded_airline')
     set statusline+=%l:%c
     set statusline+=\ │\ 
     set statusline+=%p%%
-    set statusline+=\ │\ Config:\ Ícaro\ Lira
+    set statusline+=\ ‹\ %{IcaroClock()}
+    set statusline+=\ ‹\ %{CreditFooter()}
     set statusline+=\ 
 endif

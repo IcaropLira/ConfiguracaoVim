@@ -1,0 +1,22 @@
+scriptencoding utf-8
+
+" ============================================================
+" Temas personalizados
+" ============================================================
+" Este arquivo é apenas um exemplo/documentação.
+" Os temas criados com :ThemeNew são salvos automaticamente em:
+"   ~/.vim/config/themes.local.vim
+" e suas cores em:
+"   ~/.vim/themes/colors/
+"
+" Estrutura de uma entrada:
+" call add(g:icaro_custom_themes, {
+"       \ 'id': 'meu_tema',
+"       \ 'title': 'Meu Tema',
+"       \ 'short': 'MT',
+"       \ 'subtitle': 'Minha descrição',
+"       \ 'custom': 1,
+"       \ })
+"
+" Você normalmente não precisa editar isto manualmente.
+let g:icaro_custom_themes = []

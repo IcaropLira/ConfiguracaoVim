@@ -833,32 +833,47 @@ inoremap <silent><expr> <Esc> CocEscape()
 
 # 17. Novidades: temas, atalho pra dicas inline, backspace inteligente
 
-## F1 — 16 temas, com popup mostrando o nome
+## F1 / Shift+F1 — catálogo de temas
 
-Aperte `F1` pra alternar entre os temas abaixo (cicla e volta pro primeiro). Um popup no centro da tela mostra o nome do tema escolhido por ~1,6 segundos e some sozinho. Sua escolha fica salva — fechar e abrir o vim mantém o último tema usado.
+`F1` avança para o próximo tema e `Shift+F1` volta para o anterior. O popup mostra a **sigla + nome** e a descrição. A escolha continua persistindo entre sessões.
 
 | # | Tema | Descrição |
 |---|---|---|
-| 1 | **Malvadão** | preto + vermelho (o padrão, o mesmo de antes) |
-| 2 | **Camelo** | deserto, sépia e amarelo |
-| 3 | **Pedro de...** | claro, branco — "Cor: Clara" |
-| 4 | **Mateus São Paulino** | branco predominante, vermelho e preto — "tema trikas" |
-| 5 | **Of(f) light** | preto, branco e cinza, sem nenhuma outra cor |
-| 6 | **Belchior** | branco predominante + azul |
-| 7 | **Alan Turing** | arco-íris |
-| 8 | **Ever Dream This Man?** | gruvbox |
-| 9 | **Sassá?** | Catppuccin |
-| 10 | **Jales** | vermelho predominante, detalhes em preto, pouco branco |
-| 11 | **Maria Isabel** | preto + verde, estilo Spotify |
-| 12 | **Dijkstra** | azul-acinzentado + branco-gelo — "Como é que se escreve Dijkstra?" |
-| 13 | **Geraldo** | rosa estilo Hello Kitty + branco |
-| 14 | **Lucas ->Ribeiro?** | dourado, remetendo a ouro/dinheiro |
-| 15 | **Raul** | rock/metal, tons de aço e um vermelho sangue |
-| 16 | **ACESSO NEGADO** | só preto e branco (alvinegro) |
+| 1 | **Maria Isabel** | Pensão de Pet |
+| 2 | **Jales** | Pensão de Pet |
+| 3 | **Camelo** | Pensão de Pet |
+| 4 | **Sassá?** | Antiresenha+ |
+| 5 | **Malvadão** | Pensão de Pet |
+| 6 | **Mateus São Paulino** | Pensão de Pet |
+| 7 | **Pedro de...** | Pensão de Pet, cor : Clara |
+| 8 | **Belchior** | Pensão de Pet |
+| 9 | **Lucas Ribeiro?** | Pensão de Pet |
+| 10 | **Alan Turing** | Pensão de Pet |
+| 11 | **Alan Turing** | Antiresenha |
+| 12 | **Henrique** | Pensão de Pet |
+| 13 | **Of(f) Light** | Pensão de Pet |
+| 14 | **Geraldo** | Pensão de Pet |
+| 15 | **Cabeludo** | Antiresenha |
+| 16 | **Cookie** | Antiresenha |
+| 17 | **Ruiva** | Antiresenha |
+| 18 | **Baiana** | Antiresenha |
+| 19 | **Do Mal** | Antagonista |
+| 20 | **Sofia** | Antiresenha |
+| 21 | **Guerra** | Antiresenha+ |
+| 22 | **Soares** | Pensão de Pet+ |
+| 23 | **Biscoitinho** | Antagonista |
+| 24 | **GVSL** | Antagonista |
+| 25 | **JF** | GOATS |
+| 26 | **ToyMan** | Antagonista |
+| 27 | **Massoni** | GOATS |
+| 28 | **Dijkstra** | Como é que se escreve Dijkstra? |
+| 29 | **Ever Dream This Man?** |  |
+| 30 | **Raul** |  |
+| 31 | **ACESSO NEGADO** |  |
 
-Cada tema tem seu próprio colorscheme (`~/.vim/pack/plugins/opt/icaro-theme/colors/`) e seu próprio tema do airline — a statusline, o NERDTree, o menu de sugestões e a sintaxe do código mudam juntos.
+Cada tema possui seu próprio colorscheme e tema do Airline, então a aparência da interface acompanha a troca de tema.
 
-Quer editar as cores de um tema específico? Os arquivos estão em `theme/icaro-theme/colors/<nome>.vim` (nomes sem espaço/acento: `malvadao`, `camelo`, `pedro_de`, `mateus_sao_paulino`, `off_light`, `belchior`, `alan_turing`, `ever_dream_this_man`, `sassa`, `jales`, `maria_isabel`, `dijkstra`, `geraldo`, `lucas_ribeiro`, `raul`, `acesso_negado`).
+Para editar as cores, use `:ThemeEdit` dentro do Vim ou edite `theme/icaro-theme/colors/<id>.vim` no projeto.
 
 ## Indicador `IH` na statusline
 
@@ -875,6 +890,121 @@ Se o cursor estiver bem entre um par vazio — `()`, `[]`, `{}`, `""`, `''` ou `
 **Aviso honesto:** `Shift+Backspace` é uma combinação que nem todo terminal envia de um jeito que o Vim consegue distinguir de um Backspace comum — isso depende do seu terminal/emulador, não é algo que a configuração controle sozinha. Por isso mapeamos também o `Ctrl+Backspace` pro mesmo comportamento, como alternativa mais confiável. Se nenhum dos dois funcionar no seu terminal, me avise.
 
 ---
+
+
+# 17.1 Sistema novo de temas: anterior, header, rodapé e criação rápida
+
+O sistema de temas agora ficou pensado para uso diário, sem precisar ficar procurando qual arquivo editar.
+
+## Troca rápida
+
+```text
+F1        próximo tema
+Shift+F1  tema anterior
+```
+
+Os dois funcionam no modo normal e também enquanto você está digitando (Insert Mode).
+
+O popup mostra a **sigla + nome** do tema e a descrição dele.
+
+## Tema visível no header e no rodapé
+
+A interface agora mostra informações no estilo da referência enviada:
+
+```text
+INSERT › git:master › [MAL] Malvadão › contest/a.cpp              23% ‹ 22:26 ‹ Config: Ícaro Lira
+```
+
+O cabeçalho (`winbar`) também mostra:
+
+```text
+INSERT › [MAL] Malvadão › a.cpp                         git:master ‹ Config: Ícaro Lira
+```
+
+Além do tema, continuam aparecendo os detalhes úteis da IDE: modo atual, branch Git, arquivo, modificações, erros/avisos do coc, tipo do arquivo, posição do cursor, porcentagem e relógio.
+
+## Criar um tema sem mexer na lista principal
+
+Dentro do Vim:
+
+```vim
+:ThemeNew
+```
+
+Ele pergunta somente:
+
+```text
+Nome do novo tema:
+ID/arquivo:
+Sigla do header:
+Subtítulo/descrição:
+```
+
+Depois ele **copia o tema atual** e já abre o arquivo de cores para você editar.
+
+Os temas pessoais ficam separados dos temas oficiais:
+
+```text
+~/.vim/config/themes.local.vim
+~/.vim/themes/colors/
+~/.vim/themes/autoload/airline/themes/
+```
+
+Isso significa que atualizar/reinstalar o projeto não precisa apagar seus temas pessoais.
+
+## Editar um tema já existente
+
+```vim
+:ThemeEdit
+```
+
+Abre diretamente o arquivo de cores do tema atualmente selecionado.
+
+Para alterar rapidamente **nome, sigla ou descrição** dos seus temas pessoais:
+
+```vim
+:ThemeMeta
+```
+
+Para ver todos os temas:
+
+```vim
+:ThemeList
+```
+
+E para apenas mostrar novamente a identificação do tema atual:
+
+```vim
+:ThemeInfo
+```
+
+### Resumo
+
+| Comando | Função |
+|---|---|
+| `F1` | Próximo tema |
+| `Shift+F1` | Tema anterior |
+| `:ThemeList` | Lista completa |
+| `:ThemeNew` | Cria um tema copiando o atual |
+| `:ThemeEdit` | Edita as cores do tema atual |
+| `:ThemeMeta` | Edita nome/sigla/descrição dos temas pessoais |
+| `:ThemeInfo` | Mostra nome/sigla do tema atual |
+
+### Onde editar as cores
+
+Os temas oficiais continuam em:
+
+```text
+theme/icaro-theme/colors/<id>.vim
+```
+
+Os temas criados pelo usuário ficam em:
+
+```text
+~/.vim/themes/colors/<id>.vim
+```
+
+A parte importante é que agora **nome, sigla e descrição não ficam misturados no arquivo de cores**. O catálogo controla a identidade do tema, enquanto o colorscheme controla somente a aparência. Isso deixa muito mais rápido trocar uma cor sem precisar entender o sistema inteiro de temas.
 
 # 18. Buffers
 
@@ -1701,6 +1831,7 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 │     VIM CODEFORCES / JAVA IDE             │
 │     Configuração Ícaro Lira               │
 ├───────────────────────────────────────────┤
+│ F1       Próximo tema                     │
 │ F2       Explorer (NERDTree)              │
 │ F3       Liga/desliga dicas de parâmetro  │
 │ F4       Liga/desliga autocomplete        │
@@ -1710,6 +1841,7 @@ Se tudo funcionar, o ambiente está pronto para Codeforces.
 │ F8       Testar input.txt                 │
 │ F9       Terminal                         │
 │ F12      Folha de atalhos                 │
+│ S-F1     Tema anterior                    │
 │ Ctrl+S   Salvar                           │
 │ Ctrl+H   Janela esquerda                  │
 │ Ctrl+J   Janela abaixo                    │

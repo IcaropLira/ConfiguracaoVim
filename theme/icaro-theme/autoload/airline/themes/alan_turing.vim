@@ -32,19 +32,19 @@ let g:airline#themes#alan_turing#palette = {}
 
 let s:N1 = [ s:black, s:mode_normal, s:t_black, s:t_normal ]
 let s:N2 = [ s:fg, s:panel, s:t_fg, s:t_panel ]
-let s:N3 = [ s:purple, s:black, 135, s:t_black ]
+let s:N3 = [ s:purple, s:panel2, 135, s:t_panel ]
 let g:airline#themes#alan_turing#palette.normal = airline#themes#generate_color_map(s:N1, s:N2, s:N3)
 
 let s:I1 = [ s:black, s:mode_insert, s:t_black, s:t_insert ]
-let s:I3 = [ s:cyan, s:black, 87, s:t_black ]
+let s:I3 = [ s:cyan, s:panel2, 87, s:t_panel ]
 let g:airline#themes#alan_turing#palette.insert = airline#themes#generate_color_map(s:I1, s:N2, s:I3)
 
 let s:V1 = [ s:black, s:mode_visual, s:t_black, s:t_visual ]
-let s:V3 = [ s:pink, s:black, 205, s:t_black ]
+let s:V3 = [ s:pink, s:panel2, 205, s:t_panel ]
 let g:airline#themes#alan_turing#palette.visual = airline#themes#generate_color_map(s:V1, s:N2, s:V3)
 
 let s:R1 = [ s:black, s:mode_replace, s:t_black, s:t_replace ]
-let s:R3 = [ s:orange, s:black, 215, s:t_black ]
+let s:R3 = [ s:orange, s:panel2, 215, s:t_panel ]
 let g:airline#themes#alan_turing#palette.replace = airline#themes#generate_color_map(s:R1, s:N2, s:R3)
 
 let s:IA1 = [ s:fg_dim, s:black, s:t_fgdim, s:t_black ]

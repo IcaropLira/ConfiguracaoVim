@@ -28,22 +28,22 @@ let g:airline#themes#lucas_ribeiro#palette = {}
 
 let s:N1 = [ s:black, s:red,   s:t_black, s:t_red ]
 let s:N2 = [ s:fg,    s:panel, s:t_fg,    s:t_panel ]
-let s:N3 = [ s:red,   s:black, s:t_red,   s:t_black ]
+let s:N3 = [ s:red,   s:panel2, s:t_red,   s:t_panel ]
 let g:airline#themes#lucas_ribeiro#palette.normal = airline#themes#generate_color_map(s:N1, s:N2, s:N3)
 
 let s:I1 = [ s:black, s:red_bright, s:t_black, s:t_red_bright ]
 let s:I2 = s:N2
-let s:I3 = [ s:red_bright, s:black, s:t_red_bright, s:t_black ]
+let s:I3 = [ s:red_bright, s:panel2, s:t_red_bright, s:t_panel ]
 let g:airline#themes#lucas_ribeiro#palette.insert = airline#themes#generate_color_map(s:I1, s:I2, s:I3)
 
 let s:V1 = [ s:black, s:red_soft, s:t_black, s:t_red_soft ]
 let s:V2 = s:N2
-let s:V3 = [ s:red_soft, s:black, s:t_red_soft, s:t_black ]
+let s:V3 = [ s:red_soft, s:panel2, s:t_red_soft, s:t_panel ]
 let g:airline#themes#lucas_ribeiro#palette.visual = airline#themes#generate_color_map(s:V1, s:V2, s:V3)
 
 let s:R1 = [ s:fg, s:red, s:t_fg, s:t_red ]
 let s:R2 = s:N2
-let s:R3 = [ s:red, s:black, s:t_red, s:t_black ]
+let s:R3 = [ s:red, s:panel2, s:t_red, s:t_panel ]
 let g:airline#themes#lucas_ribeiro#palette.replace = airline#themes#generate_color_map(s:R1, s:R2, s:R3)
 
 let s:IA1 = [ s:fg_dim, s:black, s:t_fgdim, s:t_black ]

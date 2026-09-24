@@ -38,6 +38,7 @@ nnoremap <F3> :call ToggleInlayHints()<CR>
 
 " Trocar de tema (mostra popup com o nome por ~1,6s) — ver config/themes.vim
 nnoremap <F1> :call CycleTheme()<CR>
+nnoremap <S-F1> :call PreviousTheme()<CR>
 
 " ------------------------------------------------------------
 " As mesmas teclas de função, mas funcionando também DENTRO do modo
@@ -50,6 +51,7 @@ nnoremap <F1> :call CycleTheme()<CR>
 " de modo normal e volta pro insert automaticamente, sem esse risco.
 " ------------------------------------------------------------
 inoremap <silent> <F1> <C-o>:call CycleTheme()<CR>
+inoremap <silent> <S-F1> <C-o>:call PreviousTheme()<CR>
 inoremap <silent> <F2> <C-o>:NERDTreeToggle<CR>
 inoremap <silent> <F3> <C-o>:call ToggleInlayHints()<CR>
 inoremap <silent> <F4> <C-o>:call ToggleAutocomplete()<CR>
