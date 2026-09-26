@@ -1745,7 +1745,7 @@ Testamos o cenário exato do bug: colar (digitar rápido) um trecho com erro de 
 
 Detalhes:
 - O painel de saída reaproveita a mesma janela a cada `F5`-`F8` (não fica empilhando terminal por cima de terminal)
-- Ao terminar (com sucesso ou erro), o terminal fecha sozinho com `term_finish: 'close'`, sem pedir ENTER nem outra tecla
+- Ao terminar (com sucesso ou erro), o terminal fica aberto mostrando a saída completa — veja a seção 44.1 para os detalhes atuais de como fechar/rolar
 - O foco fica no painel enquanto o programa roda, e o Vim continua responsivo
 
 ---
@@ -1928,7 +1928,7 @@ Possíveis extensões:
 - comparação automática `output.txt`
 - gerador de arquivos A/B/C/D/E
 - comando para criar uma pasta de contest
-- templates automáticos e atalhos de compilar/executar (`F5`-`F8`) para Python, hoje só C++/Java têm isso (o autocomplete já cobre as três linguagens, veja seção 44)
+- templates automáticos e `F5`/`F6`/`F8` (compilar / rodar sem salvar de novo / testar com `input.txt`) para Python — hoje só `F7` (salvar + executar) existe pra Python, veja seção 44
 - execução com casos de teste múltiplos
 - timer de competição
 - integração com Codeforces
@@ -1991,7 +1991,9 @@ let g:coc_global_extensions = ['coc-java', 'coc-clangd', 'coc-pyright']
 
 As três são instaladas sozinhas na primeira vez que o vim abre (e também pré-instaladas pelo `install.sh`, igual já acontecia só com Java antes). `.py` já é reconhecido nativamente pelo Vim como `filetype=python`, sem precisar de nenhum arquivo `config/python.vim` só para isso funcionar.
 
-Não foram adicionados, porque não foram pedidos: template automático de `.py`, nem atalhos `F5`-`F8` de compilar/executar Python (isso ainda é só C++/Java — veja seção 42). Se quiser isso também, é só pedir.
+Não foram adicionados, porque não foram pedidos: template automático de `.py`, nem atalhos `F5`/`F6`/`F8` de compilar/executar Python (isso ainda é só C++/Java). Se quiser isso também, é só pedir.
+
+**Atualização:** `F7` (salvar + executar) já existe pra Python agora — veja a seção 44.1 logo abaixo.
 
 ## `F4` deixou de ser um interruptor único — agora é individual por linguagem
 
@@ -2019,6 +2021,30 @@ ao mesmo tempo, sem que ligar/desligar uma afete as outras.
 **Statusline:** `AutocompleteStatus()` agora mostra o estado da linguagem do arquivo atual — `[AC:ON]`/`[AC:OFF]` dentro de `.cpp`/`.java`/`.py`, e `[AC:--]` em qualquer outro tipo de arquivo (onde `F4` não se aplica, e o coc continua livre pra sugerir normalmente, como sempre foi).
 
 Testado desligando C++ com Java/Python ligados (e todas as combinações): cada linguagem manteve exatamente o estado esperado, inclusive depois de fechar e abrir o vim de novo.
+
+---
+
+# 44.1 `F7` fechava sozinho antes de dar pra ver a saída, e Python ainda não tinha nenhum atalho
+
+## O terminal do F5-F8 estava fechando cedo demais
+
+`IcaroRunInTerminal()` (`config/runner.vim`, usada por `F5`-`F8`) tinha `'term_finish': 'close'`, que fecha a janela **assim que o comando termina** — compilou com erro, ou rodou certinho até o fim, tanto faz: a janela sumia na hora, sem dar tempo de ler nada.
+
+**Correção:** tiramos o `term_finish: 'close'`. Agora, quando o comando termina, a janela fica aberta mostrando a saída inteira (mais uma linha `[Codigo de saida: N]` no final) — ela só some quando você mandar (`q`, veja abaixo) ou quando você aperta `F5`-`F8` de novo (aí sim o painel anterior é reaproveitado/fechado pra não empilhar).
+
+## Scroll dentro do terminal (F5-F8), pra ver a execução inteira
+
+Um terminal do Vim começa em "Terminal-Job mode": as teclas (inclusive setas, `Ctrl-U`, `Ctrl-D`) vão direto pro processo rodando, não pro Vim — então, se a entrada que você colou ou a saída do programa for maior que as 14 linhas da janela, não tinha como rolar pra cima e rever o que passou.
+
+Agora **`Esc`**, dentro dessa janela (a qualquer momento — rodando ou já terminado), entra em "Terminal-Normal mode" (o modo normal do Vim de verdade): dá pra usar setas, `j`/`k`, `Ctrl-U`/`Ctrl-D`, `gg` (vai pro início da execução) e `G` (vai pro fim) pra rolar livremente e ver a execução completa, do jeito que rolaria em qualquer buffer normal. `i` (ou `a`) volta pro modo de terminal, caso o programa ainda esteja esperando você digitar algo. Uma vez em Terminal-Normal mode, `q` fecha a janela.
+
+Testado com uma saída de 40 linhas maior que a janela: `Esc` + `gg` foi direto pro topo da execução; `G` voltou pro final; `q` fechou a janela.
+
+(Também testamos um jeito de pular automaticamente pro topo assim que o processo termina, sem precisar apertar `Esc` — mas esse mecanismo se mostrou instável em alguns cenários durante os testes, então preferimos manter o jeito manual, que é confiável.)
+
+## Python ganhou `F7` — salva, abre o terminal e executa
+
+Novo arquivo `config/python.vim`: dentro de um `.py`, `F7` salva o arquivo e executa com `python3` (cai pra `python` se `python3` não existir no PATH), no mesmo terminal com scroll da seção acima. Python é interpretado, então não tem etapa de compilação separada — por isso só `F7` existe aqui, sem `F5`/`F6`/`F8` (que continuam sendo só C++/Java).
 
 ---
 

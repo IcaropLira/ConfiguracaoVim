@@ -36,29 +36,39 @@ function! IcaroRunInTerminal(cmd) abort
 
     botright 14new
 
-    " Antes o terminal fechava sozinho ('term_finish': 'close') assim
-    " que o comando terminava — desse deu certo, deu erro, colou
-    " entrada, tanto faz: a janela sumia rápido demais pra dar tempo
-    " de ler a saída (ou o erro de compilação). Agora, depois do
-    " comando terminar, a gente mostra o código de saída e espera
-    " você apertar ENTER pra fechar. Só nesse momento o shell de
-    " dentro do terminal termina de verdade, e aí sim o
-    " 'term_finish': 'close' entra em ação e fecha a janela sozinha.
-    let l:wrapped = a:cmd .
-                \ '; __status=$?; echo;' .
-                \ ' if [ "$__status" -eq 0 ]; then' .
-                \ '   echo "[Concluído — pressione ENTER para fechar]";' .
-                \ ' else' .
-                \ '   echo "[Encerrou com código $__status — pressione ENTER para fechar]";' .
-                \ ' fi;' .
-                \ ' read -r _dummy'
+    " O terminal não fecha mais sozinho quando o comando termina: a
+    " janela fica aberta mostrando toda a saída (e o código de saída,
+    " no fim). Quem some o terminal antigo é a limpeza lá em cima
+    " (antes de abrir um novo com F5/F6/F7/F8) — ou você mesmo, com
+    " 'q' (veja abaixo).
+    let l:wrapped = a:cmd . '; echo; echo "[Codigo de saida: $?]"'
 
     let l:shell = executable('bash') ? 'bash' : 'sh'
     let g:icaro_runner_bufnr = term_start([l:shell, '-c', l:wrapped], {
                 \ 'curwin': 1,
                 \ 'term_kill': 'kill',
                 \ 'term_name': 'output',
-                \ 'term_finish': 'close',
                 \ })
     setlocal nonumber norelativenumber signcolumn=no
+
+    " ------------------------------------------------------------
+    " Scroll: por padrão, um terminal do Vim fica em "Terminal-Job
+    " mode" (as teclas vão direto pro processo, pra você poder digitar
+    " a entrada do programa), e nesse modo as setas/Ctrl-U/Ctrl-D não
+    " rolam a tela — elas também são enviadas pro processo. Se a saída
+    " (ou a entrada que você colou/digitou) for maior que as 14 linhas
+    " da janela, ela passa batido sem dar pra ver o começo.
+    "
+    " Aperte Esc (a qualquer momento, rodando ou já terminado) pra
+    " entrar no "Terminal-Normal mode" (o modo normal do Vim de
+    " verdade): setas, j/k, Ctrl-U/Ctrl-D, gg (vai pro topo — início
+    " da execução), G (vai pro fim) rolam a tela livremente. 'i' (ou
+    " 'a') volta pro modo de terminal, caso o programa ainda esteja
+    " rodando e esperando você digitar algo.
+    " ------------------------------------------------------------
+    tnoremap <buffer><silent> <Esc> <C-\><C-n>
+
+    " Fecha a janela com uma tecla só, uma vez em Terminal-Normal mode
+    " ('q' é uma tecla livre lá, não é usada pra mais nada nesse modo)
+    nnoremap <buffer><silent> q :bwipeout!<CR>
 endfunction
