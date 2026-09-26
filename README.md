@@ -864,7 +864,7 @@ inoremap <silent><expr> <Esc> CocEscape()
 | 17 | **Ruiva** | Antiresenha |
 | 18 | **Baiana** | Antiresenha |
 | 19 | **Do Mal** | Antagonista |
-| 20 | **Sofia** | Antiresenha |
+| 20 | **Paz** | Antiresenha |
 | 21 | **Guerra** | Antiresenha+ |
 | 22 | **Soares** | Pensão de Pet+ |
 | 23 | **Biscoitinho** | Antagonista |
