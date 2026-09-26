@@ -29,9 +29,9 @@ A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, 
 
 ## Autocomplete "de verdade" (estilo IDE)
 
-- `coc.nvim` como motor de autocomplete (LSP), com suporte a Java via `coc-java`
+- `coc.nvim` como motor de autocomplete (LSP), com suporte a Java via `coc-java`, C++ via `coc-clangd` e Python via `coc-pyright`
 - Ir para definição, ver referências, documentação ao passar o cursor (`K`), renomear símbolo
-- **Liga/desliga com uma tecla** (`F4`), com indicador visual permanente na statusline mostrando se está ligado ou desligado
+- **Liga/desliga com uma tecla** (`F4`), **individual por linguagem**: C++, Java e Python guardam cada um o seu próprio estado, então dá pra ter, por exemplo, autocomplete ligado em Java e Python e desligado em C++ ao mesmo tempo. Indicador visual permanente na statusline mostrando se a linguagem do arquivo atual está ligada ou desligada
 
 ## Programação competitiva / desenvolvimento
 
@@ -414,7 +414,7 @@ Os atalhos são os mesmos, mas cada um chama o compilador certo dependendo do ar
 
 | Tecla | Função |
 |---|---|
-| `F4` | Liga/desliga o autocomplete inteiro (persistente, em tempo real) |
+| `F4` | Liga/desliga o autocomplete **da linguagem do arquivo atual** (C++/Java/Python — persistente, em tempo real, independente entre elas) |
 | `F3` | Liga/desliga só as dicas de parâmetro inline (persistente, em tempo real) |
 | `gd` | Ir para definição |
 | `gy` | Ir para definição do tipo |
@@ -428,7 +428,7 @@ Os atalhos são os mesmos, mas cada um chama o compilador certo dependendo do ar
 | `Ctrl+j` / `Ctrl+k` | Pular entre os parâmetros de um método aceito |
 
 
-Quando o autocomplete está ligado, a statusline mostra `[AC:ON]`; quando desligado, `[AC:OFF]`. O estado de ambos (`F3` e `F4`) é salvo em disco — fechar e abrir o vim de novo mantém sua última escolha.
+Quando o autocomplete da linguagem do arquivo atual está ligado, a statusline mostra `[AC:ON]`; quando desligado, `[AC:OFF]` (fora de C++/Java/Python, mostra `[AC:--]`, já que `F4` não se aplica). O estado é individual por linguagem e salvo em disco — fechar e abrir o vim de novo mantém a escolha de cada uma (`F3` continua sendo um interruptor único, válido pra todas as linguagens).
 
 ---
 
@@ -723,11 +723,11 @@ Esta seção documenta uma leva de correções feitas depois de relatos de uso r
 
 **Causa raiz:** o mapeamento da tecla `Tab` chamava `coc#refresh()` sempre que você não estava no meio de uma sugestão — inclusive com o autocomplete desligado no `F4`. Só que `coc#refresh()` tenta reiniciar o serviço do coc.nvim no meio da digitação, o que deixava o `Tab`, o `Enter` e a digitação em geral instáveis.
 
-**Correção:** todo mapeamento que chama alguma função `coc#*` agora checa `g:my_autocomplete_enabled` primeiro. Desligado, essas teclas viram o comportamento nativo do Vim, sem passar perto do coc:
+**Correção:** todo mapeamento que chama alguma função `coc#*` agora checa `IcaroAutocompleteEnabled()` primeiro (essa função olha o estado salvo da linguagem do buffer atual — veja seção 44). Desligado, essas teclas viram o comportamento nativo do Vim, sem passar perto do coc:
 
 ```vim
 inoremap <silent><expr> <TAB>
-            \ !g:my_autocomplete_enabled ? "\<Tab>" :
+            \ !IcaroAutocompleteEnabled() ? "\<Tab>" :
             \ coc#pum#visible() ? coc#pum#next(1) :
             \ CheckBackspace() ? "\<Tab>" :
             \ coc#refresh()
@@ -748,11 +748,11 @@ O menu de sugestões usa o grupo `CocPumSearch` (o texto que bate com o que voc�
 
 Antes, `F4` só valia pra sessão atual — fechar e abrir o vim voltava tudo pro padrão (ligado). Agora:
 
-- Toda vez que você aperta `F4`, o estado (0 ou 1) é salvo em `~/.vim/.icaro_autocomplete_state`
-- Esse arquivo é lido **antes** de qualquer plugin carregar (bem no topo do `~/.vimrc`), e usado pra decidir se o coc.nvim sequer deve iniciar o serviço (`g:coc_start_at_startup`)
-- Resultado: se você deixar desligado, da próxima vez que abrir o vim ele já nasce desligado — e vice-versa
+- Toda vez que você aperta `F4`, o estado (0 ou 1) **da linguagem do buffer atual** é salvo em `~/.vim/.icaro_autocomplete_state`
+- Esse arquivo é lido **antes** de qualquer plugin carregar (bem no topo do `~/.vimrc`)
+- Resultado: se você deixar C++ desligado, da próxima vez que abrir o vim o C++ já nasce desligado — e Java/Python continuam do jeito que você deixou cada um, independentemente
 
-Isso foi verificado num teste de ida e volta completo: desligar → nova sessão (continua desligado) → religar → nova sessão (continua ligado).
+Isso foi verificado num teste de ida e volta completo: desligar C++ → nova sessão (C++ continua desligado, Java/Python continuam ligados) → religar C++ → nova sessão (tudo ligado de novo). Veja a seção 44 para os detalhes de como o toggle passou a ser por linguagem.
 
 ## Novo atalho: `F3` — só as dicas de parâmetro
 
@@ -824,7 +824,7 @@ Se mesmo assim alguma tecla de função ainda se comportar de forma estranha no 
 
 # 16. Desligar/ligar autocomplete sem quebrar a edição
 
-O `F4` agora **não mata o processo RPC do coc.nvim**. Antes de desligar, ele apenas fecha qualquer popup aberto e usa `CocDisable`; ao religar, usa `CocEnable`. Isso evita reiniciar o servidor LSP no meio da edição e reduz a chance de o estado do Insert Mode ficar inconsistente.
+O `F4` **não mata o processo RPC do coc.nvim**. Antes de desligar, ele apenas fecha qualquer popup aberto e ajusta `b:coc_suggest_disable` (opção nativa do coc.nvim, por buffer) na linguagem daquele buffer; ao religar, faz o oposto. Isso evita reiniciar o servidor LSP no meio da edição, reduz a chance de o estado do Insert Mode ficar inconsistente e — desde a seção 44 — permite que cada linguagem (C++/Java/Python) tenha seu próprio estado sem depender do `CocDisable`/`CocEnable` global, que desligaria todas de uma vez.
 
 Além disso, o `config/coc.vim` possui tratamento explícito para as teclas básicas de edição:
 
@@ -1928,7 +1928,7 @@ Possíveis extensões:
 - comparação automática `output.txt`
 - gerador de arquivos A/B/C/D/E
 - comando para criar uma pasta de contest
-- suporte a Python
+- templates automáticos e atalhos de compilar/executar (`F5`-`F8`) para Python, hoje só C++/Java têm isso (o autocomplete já cobre as três linguagens, veja seção 44)
 - execução com casos de teste múltiplos
 - timer de competição
 - integração com Codeforces
@@ -1969,8 +1969,56 @@ Vim
 Git
 g++
 JDK (para Java)
+Python 3 (para o coc-pyright)
 Node.js (para o autocomplete)
 ```
+
+---
+
+# 44. Autocomplete por linguagem: Python entrou, e o `F4` virou individual (C++/Java/Python)
+
+## Python agora tem autocomplete "de verdade"
+
+Até aqui só Java tinha uma extensão de LSP instalada automaticamente (`coc-java`). C++ e Python dependiam de o usuário instalar um language server por conta própria. Agora as três linguagens são tratadas do mesmo jeito:
+
+```vim
+let g:coc_global_extensions = ['coc-java', 'coc-clangd', 'coc-pyright']
+```
+
+- **Java** → `coc-java` (Eclipse JDT Language Server)
+- **C++** → `coc-clangd` (clangd)
+- **Python** → `coc-pyright` (Pyright)
+
+As três são instaladas sozinhas na primeira vez que o vim abre (e também pré-instaladas pelo `install.sh`, igual já acontecia só com Java antes). `.py` já é reconhecido nativamente pelo Vim como `filetype=python`, sem precisar de nenhum arquivo `config/python.vim` só para isso funcionar.
+
+Não foram adicionados, porque não foram pedidos: template automático de `.py`, nem atalhos `F5`-`F8` de compilar/executar Python (isso ainda é só C++/Java — veja seção 42). Se quiser isso também, é só pedir.
+
+## `F4` deixou de ser um interruptor único — agora é individual por linguagem
+
+**Antes:** `F4` ligava/desligava o autocomplete inteiro, pro coc.nvim como um todo, não importava em que arquivo você estivesse — e usava `CocDisable`/`CocEnable`, que derruba o processo do coc pra todas as linguagens de uma vez.
+
+**Agora:** `F4` só mexe na linguagem do buffer onde você apertou. Cada linguagem (C++, Java, Python) guarda seu próprio estado, então dá pra ter, por exemplo:
+
+```text
+C++    → desligado
+Java   → ligado
+Python → ligado
+```
+
+ao mesmo tempo, sem que ligar/desligar uma afete as outras.
+
+**Como funciona por baixo dos panos:**
+
+- `g:icaro_ac_languages = ['cpp', 'java', 'python']` (`~/.vimrc`) — a lista de linguagens com toggle individual (usa o mesmo nome do `filetype` do Vim pra cada uma)
+- `g:icaro_ac_state` — um dicionário tipo `{'cpp': 1, 'java': 0, 'python': 1}`, lido de `~/.vim/.icaro_autocomplete_state` (uma linha por linguagem, tipo `cpp 1`) bem no topo do `~/.vimrc`, antes de qualquer plugin carregar
+- `IcaroAutocompleteEnabled()` (`config/coc.vim`) — olha o `filetype` do buffer atual e devolve o estado daquela linguagem; é o que os mapeamentos de `Tab`, `Shift+Tab`, `Enter` e `Ctrl+Space` checam agora, no lugar da antiga `g:my_autocomplete_enabled` global
+- Em vez de `CocDisable`/`CocEnable` (que afetam o coc inteiro), o toggle usa `b:coc_suggest_disable` — uma opção nativa do coc.nvim, **por buffer** — pra ligar/desligar só o popup de sugestão daquela linguagem, sem mexer em diagnóstico, `gd`/`gr`/`K`/renomear, que continuam funcionando em todas as linguagens, ligadas ou não
+- Ao apertar `F4`, o novo estado é aplicado na hora em **todos os buffers já abertos** daquela linguagem (não só no atual), e também é gravado de volta no arquivo `~/.vim/.icaro_autocomplete_state`
+- Ao abrir/trocar de buffer, um `autocmd` (`FileType`/`BufEnter`) reaplica o estado salvo daquela linguagem automaticamente
+
+**Statusline:** `AutocompleteStatus()` agora mostra o estado da linguagem do arquivo atual — `[AC:ON]`/`[AC:OFF]` dentro de `.cpp`/`.java`/`.py`, e `[AC:--]` em qualquer outro tipo de arquivo (onde `F4` não se aplica, e o coc continua livre pra sugerir normalmente, como sempre foi).
+
+Testado desligando C++ com Java/Python ligados (e todas as combinações): cada linguagem manteve exatamente o estado esperado, inclusive depois de fechar e abrir o vim de novo.
 
 ---
 

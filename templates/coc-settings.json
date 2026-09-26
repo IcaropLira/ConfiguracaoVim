@@ -71,5 +71,9 @@
   "java.maxConcurrentBuilds": 1,
   "java.referencesCodeLens.enabled": true,
   "java.implementationsCodeLens.enabled": true,
-  "java.inlayHints.parameterNames.enabled": "all"
+  "java.inlayHints.parameterNames.enabled": "all",
+
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "pyright.inlayHints.functionReturnTypes": true
 }

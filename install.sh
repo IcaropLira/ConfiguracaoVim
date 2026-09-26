@@ -294,16 +294,18 @@ fi
 
 if [ "$NODE_OK" -eq 1 ]; then
     echo
-    echo "Pré-instalando a extensão coc-java (pode demorar bastante na"
-    echo "primeira vez, pois baixa o Eclipse JDT Language Server)..."
-    if timeout 180 "$ICARO_VIM_REAL" -es -u "$HOME/.vimrc" -c "CocInstall -sync coc-java" -c "qa!" \
-        >/tmp/coc-java-install.log 2>&1; then
-        echo "coc-java instalado."
+    echo "Pré-instalando as extensões de autocomplete: coc-java, coc-clangd"
+    echo "e coc-pyright (a de Java pode demorar bastante na primeira vez,"
+    echo "pois baixa o Eclipse JDT Language Server)..."
+    if timeout 180 "$ICARO_VIM_REAL" -es -u "$HOME/.vimrc" \
+        -c "CocInstall -sync coc-java coc-clangd coc-pyright" -c "qa!" \
+        >/tmp/coc-install.log 2>&1; then
+        echo "coc-java, coc-clangd e coc-pyright instalados."
     else
         echo "Não deu tempo de terminar aqui, sem problema: a configuração"
         echo "já está com 'g:coc_global_extensions' ativo, então o coc.nvim"
-        echo "termina a instalação sozinho automaticamente na primeira vez"
-        echo "que você abrir o vim de verdade (log em /tmp/coc-java-install.log)."
+        echo "termina a instalação sozinha automaticamente na primeira vez"
+        echo "que você abrir o vim de verdade (log em /tmp/coc-install.log)."
     fi
 fi
 
@@ -318,7 +320,8 @@ echo
 echo "Atalhos principais:"
 echo "  F2       Explorer (NERDTree)"
 echo "  F3       Liga/desliga só as dicas de parâmetro inline"
-echo "  F4       Liga/desliga o autocomplete (persistente)"
+echo "  F4       Liga/desliga o autocomplete (persistente, por linguagem:"
+echo "           C++/Java/Python cada um guarda seu próprio estado)"
 echo "  F5       Compilar"
 echo "  F6       Executar"
 echo "  F7       Compilar + executar"

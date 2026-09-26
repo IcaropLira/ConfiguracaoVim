@@ -11,7 +11,10 @@ let g:loaded_my_coc = 1
 " REQUISITOS:
 "   - Node.js instalado (node --version)
 "   - JDK instalado (para o coc-java funcionar em arquivos .java)
-"   - Extensão coc-java instalada: dentro do vim, rode :CocInstall coc-java
+"   - Extensões instaladas automaticamente na primeira vez que o vim
+"     abrir: coc-java (.java), coc-clangd (.cpp) e coc-pyright (.py)
+"     — dá pra forçar manualmente com :CocInstall coc-java coc-clangd
+"     coc-pyright
 "
 " Se o coc.nvim não estiver instalado, este arquivo não faz nada
 " (o resto da configuração continua funcionando normalmente).
@@ -31,10 +34,11 @@ if !isdirectory(expand('~/.vim/pack/plugins/opt/coc.nvim'))
     finish
 endif
 
-" Instala/atualiza sozinho a extensão de Java na primeira vez que o
-" vim abrir (não depende do install.sh terminar a tempo). Pode demorar
-" um pouco na primeira execução, pois baixa o Eclipse JDT Language Server.
-let g:coc_global_extensions = ['coc-java']
+" Instala/atualiza sozinho as extensões de C++, Java e Python na
+" primeira vez que o vim abrir (não depende do install.sh terminar a
+" tempo). Pode demorar um pouco na primeira execução, especialmente a
+" de Java, pois baixa o Eclipse JDT Language Server.
+let g:coc_global_extensions = ['coc-java', 'coc-clangd', 'coc-pyright']
 
 " Menor tempo de atualização = sugestões mais rápidas
 set updatetime=300
@@ -46,6 +50,37 @@ function! CheckBackspace() abort
     let l:col = col('.') - 1
     return !l:col || getline('.')[l:col - 1] =~# '\s'
 endfunction
+
+" ------------------------------------------------------------
+" Autocomplete por linguagem: diz se o buffer ATUAL deve se comportar
+" como "autocomplete ligado" (C++/Java/Python, cada um com seu próprio
+" estado em g:icaro_ac_state, lido/gravado em ~/.vim/config e definido
+" no topo do ~/.vimrc). Filetypes fora dessa lista não têm toggle
+" individual e continuam com o autocomplete sempre disponível.
+" ------------------------------------------------------------
+function! IcaroAutocompleteEnabled() abort
+    let l:ft = &filetype
+    if index(g:icaro_ac_languages, l:ft) >= 0
+        return get(g:icaro_ac_state, l:ft, 1)
+    endif
+    return 1
+endfunction
+
+" Aplica o estado da linguagem do buffer atual no coc.nvim. Usamos
+" b:coc_suggest_disable (opção nativa do coc.nvim, por buffer) em vez
+" de CocEnable/CocDisable: assim só o popup de sugestão é afetado,
+" sem desligar diagnóstico, "ir para definição", hover, etc., e sem
+" derrubar o processo do coc.nvim — que continua rodando normalmente
+" pras outras linguagens que estiverem ligadas.
+function! s:ApplyAutocompleteStateToBuffer() abort
+    let b:coc_suggest_disable = IcaroAutocompleteEnabled() ? 0 : 1
+endfunction
+
+augroup icaro_coc_per_language_state
+    autocmd!
+    autocmd FileType * call s:ApplyAutocompleteStateToBuffer()
+    autocmd BufEnter * call s:ApplyAutocompleteStateToBuffer()
+augroup END
 
 " ------------------------------------------------------------
 " Teclas básicas de edição
@@ -92,24 +127,24 @@ inoremap <silent> } }
 " Tab / Shift-Tab para navegar nas sugestões
 " ------------------------------------------------------------
 inoremap <silent><expr> <TAB>
-            \ !g:my_autocomplete_enabled ? "\<Tab>" :
+            \ !IcaroAutocompleteEnabled() ? "\<Tab>" :
             \ coc#pum#visible() ? coc#pum#next(1) :
             \ CheckBackspace() ? "\<Tab>" :
             \ coc#refresh()
 inoremap <silent><expr> <S-TAB>
-            \ !g:my_autocomplete_enabled ? "\<C-h>" :
+            \ !IcaroAutocompleteEnabled() ? "\<C-h>" :
             \ coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 
 " ------------------------------------------------------------
 " Enter
 " ------------------------------------------------------------
 inoremap <silent><expr> <CR>
-            \ !g:my_autocomplete_enabled ? "\<CR>" :
+            \ !IcaroAutocompleteEnabled() ? "\<CR>" :
             \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>"
 
 " Ctrl+Space força a sugestão manualmente.
 inoremap <silent><expr> <C-space>
-            \ g:my_autocomplete_enabled ? coc#refresh() : ''
+            \ IcaroAutocompleteEnabled() ? coc#refresh() : ''
 
 " Navega entre os "buracos" (parâmetros) de um método depois de
 " aceitar a sugestão — exatamente como o Eclipse/VSCode fazem quando
@@ -160,27 +195,65 @@ function! s:PersistState(file, value) abort
 endfunction
 
 " ------------------------------------------------------------
-" Toggle: ligar/desligar o autocomplete inteiro (F4). Persistente:
-" o que você deixar aqui continua valendo da próxima vez que abrir
-" o vim, até você apertar F4 de novo.
+" Toggle: ligar/desligar o autocomplete (F4) — POR LINGUAGEM.
 "
-" IMPORTANTE: o toggle não mata o processo RPC do coc.nvim.
-" CocDisable/CocEnable é suficiente e evita deixar o Insert Mode
-" ou o estado do popup em uma situação inconsistente.
+" F4 só mexe na linguagem do buffer onde você apertou: se você está
+" num .cpp, só o C++ liga/desliga; Java e Python ficam exatamente como
+" estavam. Persistente: o que você deixar aqui continua valendo da
+" próxima vez que abrir o vim, até você apertar F4 de novo NAQUELA
+" linguagem.
+"
+" IMPORTANTE: o toggle não mata o processo RPC do coc.nvim nem usa
+" CocDisable/CocEnable (isso desligaria TODAS as linguagens de uma
+" vez). Em vez disso, usamos b:coc_suggest_disable por buffer — o
+" popup de sugestão para de aparecer só onde deve, e diagnóstico/"ir
+" para definição"/hover continuam funcionando normalmente em todas as
+" linguagens, ligadas ou não.
 " ------------------------------------------------------------
 function! ToggleAutocomplete() abort
-    if g:my_autocomplete_enabled
-        let g:my_autocomplete_enabled = 0
-        silent! call coc#pum#cancel()
-        silent! CocDisable
-        echo 'Autocomplete: DESLIGADO (continua desligado até você apertar F4 de novo)'
-    else
-        let g:my_autocomplete_enabled = 1
-        silent! CocEnable
-        echo 'Autocomplete: LIGADO'
+    let l:ft = &filetype
+    if index(g:icaro_ac_languages, l:ft) < 0
+        echo 'F4 não tem toggle individual pra este filetype ("' . l:ft .
+                    \ '"). Linguagens com toggle: ' . join(g:icaro_ac_languages, ', ')
+        return
     endif
-    call s:PersistState(g:icaro_ac_state_file, g:my_autocomplete_enabled)
+
+    let l:new_state = get(g:icaro_ac_state, l:ft, 1) ? 0 : 1
+    let g:icaro_ac_state[l:ft] = l:new_state
+
+    silent! call coc#pum#cancel()
+
+    " Aplica na hora em TODOS os buffers já abertos dessa mesma
+    " linguagem (não só no atual), pra não precisar trocar de janela
+    " pra "ativar" a mudança.
+    for l:bufnr in range(1, bufnr('$'))
+        if bufexists(l:bufnr) && getbufvar(l:bufnr, '&filetype') ==# l:ft
+            call setbufvar(l:bufnr, 'coc_suggest_disable', l:new_state ? 0 : 1)
+        endif
+    endfor
+
+    if l:new_state
+        echo 'Autocomplete (' . l:ft . '): LIGADO'
+    else
+        echo 'Autocomplete (' . l:ft .
+                    \ '): DESLIGADO (continua desligado só para ' . l:ft .
+                    \ ' até você apertar F4 de novo aqui — as outras linguagens não mudam)'
+    endif
+
+    call s:PersistAutocompleteState()
     redrawstatus!
+endfunction
+
+function! s:PersistAutocompleteState() abort
+    let l:lines = []
+    for l:lang in g:icaro_ac_languages
+        call add(l:lines, l:lang . ' ' . get(g:icaro_ac_state, l:lang, 1))
+    endfor
+    try
+        call writefile(l:lines, g:icaro_ac_state_file)
+    catch /.*/
+        " sem permissão de escrita, sem problema, só não persiste
+    endtry
 endfunction
 
 " ------------------------------------------------------------

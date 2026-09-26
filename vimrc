@@ -47,13 +47,46 @@ let g:icaro_powerline = get(g:, 'icaro_powerline', 1)
 
 " ------------------------------------------------------------
 " Persistência dos toggles (autocomplete / dicas de parâmetro).
-" Cada F4/F3 (veja config/coc.vim) grava um arquivinho de 1 caractere
-" em ~/.vim/; aqui a gente lê ele de volta ANTES de qualquer plugin
-" carregar — é o que garante que "desligado" continua desligado depois
-" de fechar e abrir o vim de novo.
+"
+" O autocomplete (F4, veja config/coc.vim) é individual POR
+" LINGUAGEM: C++, Java e Python guardam cada um o seu próprio
+" liga/desliga, sem depender um do outro. Por exemplo, dá pra deixar
+" ligado em Java e Python e desligado em C++ ao mesmo tempo — e essa
+" escolha é por linguagem, não pela última tecla apertada.
+"
+" Tudo fica gravado num arquivinho de texto (uma linha por
+" linguagem, tipo "cpp 1") em ~/.vim/; aqui a gente lê ele de volta
+" ANTES de qualquer plugin carregar — é o que garante que "C++
+" desligado" continua desligado depois de fechar e abrir o vim de
+" novo, sem mudar o estado de Java/Python.
 " ------------------------------------------------------------
 let g:icaro_ac_state_file    = expand('~/.vim/.icaro_autocomplete_state')
 let g:icaro_inlay_state_file = expand('~/.vim/.icaro_inlayhints_state')
+
+" Linguagens com toggle individual de autocomplete. Pra adicionar uma
+" nova linguagem no futuro, basta incluir o filetype dela aqui (e ter
+" um language server pra ela configurado em config/coc.vim).
+let g:icaro_ac_languages = ['cpp', 'java', 'python']
+
+function! s:ReadAutocompleteState(file, languages) abort
+    " Padrão de fábrica: toda linguagem começa LIGADA, a não ser que
+    " o arquivo diga o contrário pra alguma delas especificamente.
+    let l:state = {}
+    for l:lang in a:languages
+        let l:state[l:lang] = 1
+    endfor
+
+    if filereadable(a:file)
+        for l:line in readfile(a:file)
+            let l:parts = split(l:line)
+            if len(l:parts) == 2 && index(a:languages, l:parts[0]) >= 0
+                let l:state[l:parts[0]] = (l:parts[1] ==# '0') ? 0 : 1
+            endif
+        endfor
+    endif
+
+    return l:state
+endfunction
 
 function! s:ReadState(file, default) abort
     if filereadable(a:file)
@@ -65,13 +98,16 @@ function! s:ReadState(file, default) abort
     return a:default
 endfunction
 
-let g:my_autocomplete_enabled = s:ReadState(g:icaro_ac_state_file, 1)
-let g:my_inlay_hints_enabled  = s:ReadState(g:icaro_inlay_state_file, 1)
+" g:icaro_ac_state = {'cpp': 1, 'java': 0, 'python': 1, ...} — cada F4
+" só mexe na entrada do filetype do buffer atual (veja config/coc.vim).
+let g:icaro_ac_state         = s:ReadAutocompleteState(g:icaro_ac_state_file, g:icaro_ac_languages)
+let g:my_inlay_hints_enabled = s:ReadState(g:icaro_inlay_state_file, 1)
 
-" Impede o coc.nvim de sequer iniciar o serviço se a última escolha
-" salva foi "desligado" — assim ele nasce desligado de verdade, em vez
-" de ligar e a gente desligar na marra logo em seguida.
-let g:coc_start_at_startup = g:my_autocomplete_enabled
+" O coc.nvim continua iniciando normalmente sempre: como o toggle
+" agora é por linguagem (e não um interruptor único), quem decide se
+" o popup de sugestão aparece ou não em cada buffer é o
+" b:coc_suggest_disable aplicado em config/coc.vim, não o processo
+" do coc como um todo.
 
 " O vim-airline lê estas variáveis assim que ele mesmo inicializa
 " (antes do resto da nossa config ser carregada). Se a gente só
@@ -81,7 +117,13 @@ let g:coc_start_at_startup = g:my_autocomplete_enabled
 " por isso essas funções e as seções customizadas ficam aqui, bem no
 " topo, antes de qualquer 'packadd'.
 function! AutocompleteStatus() abort
-    return get(g:, 'my_autocomplete_enabled', 1) ? '[AC:ON]' : '[AC:OFF]'
+    let l:ft = &filetype
+    if index(g:icaro_ac_languages, l:ft) >= 0
+        return get(g:icaro_ac_state, l:ft, 1) ? '[AC:ON]' : '[AC:OFF]'
+    endif
+    " Filetype sem toggle individual (não é cpp/java/python) — mostra
+    " um indicador neutro, já que aqui o F4 não se aplica.
+    return '[AC:--]'
 endfunction
 
 function! InlayHintStatus() abort
