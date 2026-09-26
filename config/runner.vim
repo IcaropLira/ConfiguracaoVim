@@ -35,8 +35,26 @@ function! IcaroRunInTerminal(cmd) abort
     endif
 
     botright 14new
+
+    " Antes o terminal fechava sozinho ('term_finish': 'close') assim
+    " que o comando terminava — desse deu certo, deu erro, colou
+    " entrada, tanto faz: a janela sumia rápido demais pra dar tempo
+    " de ler a saída (ou o erro de compilação). Agora, depois do
+    " comando terminar, a gente mostra o código de saída e espera
+    " você apertar ENTER pra fechar. Só nesse momento o shell de
+    " dentro do terminal termina de verdade, e aí sim o
+    " 'term_finish': 'close' entra em ação e fecha a janela sozinha.
+    let l:wrapped = a:cmd .
+                \ '; __status=$?; echo;' .
+                \ ' if [ "$__status" -eq 0 ]; then' .
+                \ '   echo "[Concluído — pressione ENTER para fechar]";' .
+                \ ' else' .
+                \ '   echo "[Encerrou com código $__status — pressione ENTER para fechar]";' .
+                \ ' fi;' .
+                \ ' read -r _dummy'
+
     let l:shell = executable('bash') ? 'bash' : 'sh'
-    let g:icaro_runner_bufnr = term_start([l:shell, '-c', a:cmd], {
+    let g:icaro_runner_bufnr = term_start([l:shell, '-c', l:wrapped], {
                 \ 'curwin': 1,
                 \ 'term_kill': 'kill',
                 \ 'term_name': 'output',
