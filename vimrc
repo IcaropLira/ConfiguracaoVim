@@ -4,7 +4,28 @@ set fileencodings=utf-8
 set nocompatible
 filetype plugin indent on
 syntax enable
-set termguicolors
+" Cores: use truecolor quando o terminal realmente anuncia suporte.
+" O GNOME Terminal/VTE moderno suporta truecolor e precisa dele para
+" preservar as paletas dos temas; termguicolors não deve ser desativado
+" só porque $TERM é xterm-256color.
+if has('gui_running')
+    set termguicolors
+elseif $TERM =~# 'kitty'
+    set termguicolors
+elseif $COLORTERM =~? 'truecolor\|24bit'
+    set termguicolors
+elseif exists('$VTE_VERSION') && str2nr($VTE_VERSION) >= 5000
+    set termguicolors
+elseif $ICARO_TRUECOLOR ==# '1'
+    set termguicolors
+else
+    set notermguicolors
+endif
+if exists('+ttyfast')
+    set ttyfast
+endif
+set ttimeout
+set ttimeoutlen=100
 set background=dark
 
 " ============================================================
@@ -150,6 +171,7 @@ else
 endif
 
 " Powerline da barra inferior é independente dos ícones da Nerd Font.
+" A fonte é instalada pelo install.sh; aqui só ligamos os glifos.
 if get(g:, 'icaro_powerline', 1)
     let g:airline_powerline_fonts = 1
     let g:airline_left_sep = ''
@@ -160,16 +182,10 @@ endif
 
 silent! packadd! coc.nvim
 
-" Corrige as cores dentro do tmux/screen. Sem 'termguicolors' entrando
-" em vigor DEPOIS que o Vim já sabe que está dentro do tmux, as cores
-" ficam com aparência "lavada"/erradas. Isso ainda depende do seu
-" tmux.conf permitir truecolor (veja o README, seção de tmux); mesmo
-" sem isso, o tema tem um fallback de 256 cores que continua preto+
-" vermelho, só um pouco menos preciso.
-if !empty($TMUX)
-    set termguicolors
-endif
-
+" A limpeza/restauração do terminal é feita pelo wrapper instalado em
+" ~/.local/bin/vim depois que o processo do Vim realmente termina.
+" Fazer OSC de reset durante VimLeavePre era justamente uma fonte de
+" comportamento estranho em alguns terminais do laboratorio.
 " Tema: quem decide qual está ativo (e aplica o salvo da última vez)
 " é o config/themes.vim, carregado logo abaixo — o tema "Malvadão" é
 " só o primeiro da lista/padrão de fábrica.

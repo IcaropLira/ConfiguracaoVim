@@ -21,7 +21,7 @@ let g:icaro_themes = [
       \ {'id': 'maria_isabel',       'title': 'Maria Isabel',       'short': 'MI',  'subtitle': 'Pensão de Pet'},
       \ {'id': 'jales',              'title': 'Jales',              'short': 'JAL', 'subtitle': 'Pensão de Pet'},
       \ {'id': 'camelo',             'title': 'Camelo',             'short': 'CAM', 'subtitle': 'Pensão de Pet'},
-      \ {'id': 'sassa',              'title': 'Sassá?',              'short': 'SAS', 'subtitle': 'Antiresenha+'},
+      \ {'id': 'sassa',              'title': 'Iogurte',              'short': 'ELA', 'subtitle': 'Antiresenha+'},
       \ {'id': 'malvadao',           'title': 'Malvadão',           'short': 'MAL', 'subtitle': 'Pensão de Pet'},
       \ {'id': 'mateus_sao_paulino', 'title': 'Mateus São Paulino', 'short': 'MSP', 'subtitle': 'Pensão de Pet'},
       \ {'id': 'pedro_de',           'title': 'Pedro de...',         'short': 'PED', 'subtitle': 'Pensão de Pet, cor : Clara'},

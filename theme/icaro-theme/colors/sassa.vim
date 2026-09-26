@@ -1,5 +1,5 @@
 " ============================================================
-" sassa.vim — colorscheme "Sassa?" (Configuracao Vim Icaro Lira)
+" sassa.vim — colorscheme "Iogurte" (Configuracao Vim Icaro Lira)
 " ============================================================
 
 set background=dark

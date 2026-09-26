@@ -17,8 +17,7 @@ function! CompileCpp() abort
     let l:file = expand('%:p')
     let l:output = expand('%:p:r')
     let l:cmd = 'g++ -std=c++17 -O2 -Wall -Wextra ' .
-                \ shellescape(l:file) . ' -o ' . shellescape(l:output) .
-                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+                \ shellescape(l:file) . ' -o ' . shellescape(l:output)
     call IcaroRunInTerminal(l:cmd)
 endfunction
 
@@ -31,8 +30,7 @@ function! RunCpp() abort
         return
     endif
 
-    let l:cmd = shellescape(l:output) .
-                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+    let l:cmd = shellescape(l:output)
     call IcaroRunInTerminal(l:cmd)
 endfunction
 
@@ -42,8 +40,7 @@ function! BuildRunCpp() abort
     let l:output = expand('%:p:r')
     let l:cmd = 'g++ -std=c++17 -O2 -Wall -Wextra ' .
                 \ shellescape(l:file) . ' -o ' . shellescape(l:output) .
-                \ ' && ' . shellescape(l:output) .
-                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+                \ ' && ' . shellescape(l:output)
     call IcaroRunInTerminal(l:cmd)
 endfunction
 
@@ -59,8 +56,7 @@ function! TestCpp() abort
     let l:output = expand('%:p:r')
     let l:cmd = 'g++ -std=c++17 -O2 -Wall -Wextra ' .
                 \ shellescape(l:file) . ' -o ' . shellescape(l:output) .
-                \ ' && ' . shellescape(l:output) . ' < input.txt' .
-                \ '; echo; echo "[pressione qualquer tecla para fechar]"; if [ -n "$BASH_VERSION" ]; then read -n1 -s -r; else read -r _; fi'
+                \ ' && ' . shellescape(l:output) . ' < input.txt'
     call IcaroRunInTerminal(l:cmd)
 endfunction
 

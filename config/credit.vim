@@ -36,13 +36,13 @@ function! s:EnsureCreditEverywhere() abort
 
     " statusline (airline)
     if !exists('g:airline_section_z') || g:airline_section_z !~# 'CreditFooter'
-        let g:airline_section_z = '%l:%v %3p%% ‹ %{IcaroClock()} ‹ %{CreditFooter()}'
+        let g:airline_section_z = '%l:%v %3p%%  %{IcaroClock()}  %{CreditFooter()}'
         silent! AirlineRefresh
     endif
 
     " winbar
     if exists('+winbar') && &winbar !~# 'CreditFooter'
-        set winbar=%#WinBar#\ %{IcaroModeLabel()}\ ›\ %{IcaroThemeBadge()}\ ›\ %f\ %m\ %=\ %{IcaroGitBranch()}\ ‹\ %{CreditFooter()}\ 
+        set winbar=%#WinBarSeg1#\ %{IcaroModeLabel()}\ %#WinBarSep12#%#WinBarSeg2#\ %{IcaroThemeBadge()}\ %f%m\ %=\ %#WinBarSep32#%#WinBarSeg3#\ %{IcaroGitBranch()}\ %#WinBarSep32#%#WinBarSeg2#\ %{CreditFooter()}\ 
     endif
 endfunction
 

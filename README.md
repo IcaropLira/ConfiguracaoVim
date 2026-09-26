@@ -202,6 +202,12 @@ https://github.com/vim-airline/vim-airline-themes.git \
 
 ---
 
+## 4.4b Terminal do laboratório: limpeza automática ao sair
+
+A instalação cria `~/.local/bin/vim`, um pequeno wrapper que chama o Vim real e, somente depois que ele termina, restaura o TTY e limpa a tela. Isso evita o efeito em que o fundo do tema permanece desenhado no GNOME Terminal depois de `:q` e você precisa executar `clear` manualmente.
+
+Além disso, terminais comuns do laboratório usam 256 cores por padrão para priorizar estabilidade. O Kitty continua usando truecolor automaticamente; para forçar truecolor em outro terminal, use `ICARO_TRUECOLOR=1 vim`.
+
 ## 4.4 Instalar NERDTree + ícones
 
 ```bash
@@ -222,7 +228,7 @@ https://github.com/ryanoasis/vim-devicons.git \
 ~/.vim/pack/plugins/opt/vim-devicons
 ```
 
-**Importante:** para os ícones aparecerem (em vez de caixinhas), instale uma [Nerd Font](https://www.nerdfonts.com) e configure seu terminal para usá-la.
+**Importante:** o `install.sh` já instala a JetBrainsMono Nerd Font no espaço do usuário e tenta ativá-la automaticamente no GNOME Terminal. Em outros emuladores, a fonte fica disponível para seleção.
 
 ---
 
@@ -667,7 +673,7 @@ Comandos úteis dentro do NERDTree:
 | `R` | Atualizar a árvore |
 | `q` | Fechar o NERDTree |
 
-**Se os ícones aparecerem como caixinhas/quadrados:** seu terminal não está usando uma Nerd Font. Baixe uma em [nerdfonts.com](https://www.nerdfonts.com) e configure o terminal para usá-la — a configuração do Vim já está pronta para exibir os ícones assim que a fonte certa estiver ativa.
+**Se os ícones aparecerem como caixinhas/quadrados:** rode novamente o `install.sh` para reinstalar a JetBrainsMono Nerd Font. No GNOME Terminal a instalação tenta selecionar a fonte automaticamente.
 
 Se o `NERDTree` não estiver instalado por algum motivo, a configuração cai de volta pro `netrw` nativo do Vim (mesmo atalho `F2` não vai funcionar nesse caso; use `:Explore`).
 
@@ -752,14 +758,14 @@ Isso foi verificado num teste de ida e volta completo: desligar → nova sessão
 
 Separado do `F4` (que liga/desliga o autocomplete inteiro), o `F3` liga/desliga só aquele texto fantasma que aparece dentro das chamadas de método (tipo `println(/* x: */ valor)`), sem mexer nas sugestões normais. Também é persistente, salvo em `~/.vim/.icaro_inlayhints_state`.
 
-## Nerd Font agora é opcional de verdade
+## Nerd Font instalada automaticamente no laboratório
 
-Antes, os ícones do NERDTree e as setinhas "powerline" da statusline dependiam de você ter uma Nerd Font instalada — sem isso, ficavam caixinhas quebradas. Agora o `install.sh` pergunta na hora da instalação:
+Antes, os ícones do NERDTree e as setinhas "powerline" da statusline dependiam de você ter uma Nerd Font instalada — sem isso, ficavam caixinhas quebradas. Agora o `install.sh` instala a JetBrainsMono Nerd Font automaticamente no espaço do usuário, sem pedir confirmação e sem exigir sudo:
 
-- **Sim, tenho Nerd Font** → ícones e setinhas powerline ligados
-- **Não tenho** (padrão, se você não tiver certeza) → o `vim-devicons` nem chega a carregar, e a statusline usa separadores simples em Unicode comum (`│`), que funcionam em qualquer fonte monoespaçada
+- **JetBrainsMono Nerd Font** → instalada em `~/.local/share/fonts` e ativada para o GNOME Terminal quando possível
+- `g:icaro_use_nerd_font = 1` → ícones NERDTree e separadores Powerline ligados desde a primeira abertura
 
-Sua resposta fica salva em `~/.vim/config/local.vim` — o `install.sh` nunca mais pergunta de novo depois disso, mas você pode editar esse arquivo manualmente a qualquer momento pra mudar de ideia.
+A instalação é repetível e não fica esperando você responder perguntas.
 
 ## Créditozinho difícil de tirar
 
@@ -771,9 +777,9 @@ Por pedido: o "Config: Ícaro Lira" agora é bem mais chato de remover do que ap
 
 Não é uma trava de segurança de verdade (ninguém consegue fazer isso num arquivo de config local), mas não sai sem querer — precisa editar `config/credit.vim` de propósito e desligar o `augroup icaro_credit_watchdog` de lá.
 
-## Tela inicial nova
+## Abertura direta
 
-Abrir o vim sem nenhum arquivo agora mostra uma tela de boas-vindas com o nome da configuração, atalhos principais e como começar. De propósito, ela usa só caracteres ASCII simples (nada de blocos Unicode `█▓▒`) — durante os testes, encontramos telas onde esses blocos ficavam embaralhados dependendo da fonte/locale do terminal, então preferimos algo 100% seguro em qualquer lugar.
+Abrir `vim` agora entra direto no buffer, sem tela intermediária e sem precisar apertar ENTER para começar. Isso deixa o fluxo do laboratório mais rápido.
 
 ## F3 corrigido: agora desliga de verdade as dicas dentro dos parênteses
 
@@ -842,7 +848,7 @@ inoremap <silent><expr> <Esc> CocEscape()
 | 1 | **Maria Isabel** | Pensão de Pet |
 | 2 | **Jales** | Pensão de Pet |
 | 3 | **Camelo** | Pensão de Pet |
-| 4 | **Sassá?** | Antiresenha+ |
+| 4 | **Iogurte** | Antiresenha+ |
 | 5 | **Malvadão** | Pensão de Pet |
 | 6 | **Mateus São Paulino** | Pensão de Pet |
 | 7 | **Pedro de...** | Pensão de Pet, cor : Clara |
@@ -1685,6 +1691,12 @@ Workflow C++
 
 # 35. Instalação no PC do LCC
 
+O roteiro atual é pensado para o laboratório: não há perguntas de Nerd Font,
+e a instalação tenta deixar a interface completa pronta automaticamente.
+A JetBrainsMono Nerd Font é instalada no espaço do usuário, sem sudo, e o
+GNOME Terminal é configurado automaticamente quando o ambiente permitir.
+
+
 Exemplo completo:
 
 ```bash
@@ -1733,8 +1745,8 @@ Testamos o cenário exato do bug: colar (digitar rápido) um trecho com erro de 
 
 Detalhes:
 - O painel de saída reaproveita a mesma janela a cada `F5`-`F8` (não fica empilhando terminal por cima de terminal)
-- Ao terminar (com sucesso ou erro), aparece "`[pressione qualquer tecla para fechar]`" — aperte qualquer tecla e o painel fecha sozinho (usa a opção `term_finish: 'close'` do Vim), voltando o foco pro seu código automaticamente
-- Depois de rodar, o foco fica no painel de saída (pra você já ler o resultado/erro na hora); ao fechar (apertando qualquer tecla), o foco volta pro código sozinho
+- Ao terminar (com sucesso ou erro), o terminal fecha sozinho com `term_finish: 'close'`, sem pedir ENTER nem outra tecla
+- O foco fica no painel enquanto o programa roda, e o Vim continua responsivo
 
 ---
 

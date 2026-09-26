@@ -112,29 +112,44 @@ function! s:PopupLuma(hex) abort
     return (0.2126 * l:r) + (0.7152 * l:g) + (0.0722 * l:b)
 endfunction
 
+function! s:PopupText(bg) abort
+    " Fundo escuro -> texto claro. Fundo claro -> texto escuro.
+    let l:luma = s:PopupLuma(a:bg)
+    if l:luma < 0 || l:luma < 128
+        return ['#f2f2f2', 15]
+    endif
+    return ['#202020', 0]
+endfunction
+
+function! s:SetPopupText(group, bg) abort
+    let l:text = s:PopupText(a:bg)
+    execute 'hi ' . a:group . ' guifg=' . l:text[0] . ' ctermfg=' . l:text[1]
+endfunction
+
 function! IcaroFixPopupContrast() abort
-    let l:normal_fg = synIDattr(synIDtrans(hlID('Normal')), 'fg#', 'gui')
     let l:pmenu_bg = synIDattr(synIDtrans(hlID('Pmenu')), 'bg#', 'gui')
     let l:sel_bg = synIDattr(synIDtrans(hlID('PmenuSel')), 'bg#', 'gui')
+    let l:coc_bg = synIDattr(synIDtrans(hlID('CocFloating')), 'bg#', 'gui')
 
-    if empty(l:normal_fg)
-        return
+    if !empty(l:pmenu_bg)
+        call s:SetPopupText('Pmenu', l:pmenu_bg)
+        call s:SetPopupText('CocPumMenu', l:pmenu_bg)
+        call s:SetPopupText('CocPumDetail', l:pmenu_bg)
+        call s:SetPopupText('CocPumShortcut', l:pmenu_bg)
     endif
 
-    " O Normal de cada tema já é a cor de texto correta para sua paleta.
-    " Usamos a luminosidade real do popup para não depender de
-    " background=dark/light (há temas claros marcados como dark).
-    if s:PopupLuma(l:pmenu_bg) >= 0
-        execute 'hi Pmenu guifg=' . l:normal_fg
-        execute 'hi CocFloating guifg=' . l:normal_fg
-        execute 'hi Float guifg=' . l:normal_fg
-    endif
-
-    " A linha selecionada pode ter um fundo diferente do popup principal.
-    " Ela recebe o mesmo tratamento, usando o fg normal do tema.
     if !empty(l:sel_bg)
-        execute 'hi PmenuSel guifg=' . l:normal_fg
-        execute 'hi PmenuMatchSel guifg=' . l:normal_fg
+        call s:SetPopupText('PmenuSel', l:sel_bg)
+        call s:SetPopupText('PmenuMatchSel', l:sel_bg)
+        call s:SetPopupText('CocMenuSel', l:sel_bg)
+    endif
+
+    if !empty(l:coc_bg)
+        call s:SetPopupText('CocFloating', l:coc_bg)
+        call s:SetPopupText('Float', l:coc_bg)
+        call s:SetPopupText('CocErrorFloat', l:coc_bg)
+        call s:SetPopupText('CocWarningFloat', l:coc_bg)
+        call s:SetPopupText('CocInfoFloat', l:coc_bg)
     endif
 endfunction
 
@@ -145,55 +160,12 @@ augroup END
 call IcaroFixPopupContrast()
 
 " ------------------------------------------------------------
-" Tela inicial (quando o vim abre sem nenhum arquivo). De propósito
-" só usa caracteres ASCII puros (sem blocos/linhas Unicode) — isso
-" também depende de fonte/locale do terminal, e ASCII simples é o
-" único jeito de garantir que nunca vai aparecer embaralhado.
+" Abertura direta
 " ------------------------------------------------------------
+" Nao existe mais uma tela de boas-vindas intermediaria: `vim` abre
+" direto no buffer, pronto para editar. Isso evita a necessidade de
+" apertar ENTER/Q para comecar no terminal do laboratorio.
 set shortmess+=I
-
-function! s:ShowStartScreen() abort
-    if argc() != 0 || line('$') > 1 || getline(1) !=# '' || &modified
-        return
-    endif
-    setlocal buftype=nofile bufhidden=wipe noswapfile nobuflisted
-    setlocal nonumber norelativenumber signcolumn=no cursorline
-    let l:banner = [
-                \ '',
-                \ '',
-                \ '        _________  _____  ____  ____  ',
-                \ '       /  _/ ___/ / _ | / __ \/ __ \ ',
-                \ '      _/ // /__  / __ |/ /_/ / /_/ / ',
-                \ '     /___/\___/ /_/ |_|\____/\____/  ',
-                \ '',
-                \ '          vim  --  c++ & java',
-                \ '          config: Icaro Lira',
-                \ '',
-                \ '',
-                \ '   F2  explorer              F5  compilar',
-                \ '   F3  dicas de parametro    F6  executar',
-                \ '   F4  autocomplete          F7  compilar + executar',
-                \ '   F9  terminal              F8  testar com input.txt',
-                \ '',
-                \ '   :e nome.cpp   ou   :e nome.java   para comecar',
-                \ '',
-                \ ]
-    call setline(1, l:banner)
-    setlocal nomodifiable nomodified
-    syntax match IcaroStartBanner '[_/\\|]'
-    syntax match IcaroStartSubtitle '\Vvim  --  c++ & java\|\Vconfig: Icaro Lira'
-    syntax match IcaroStartKey '\<F[2-9]\>'
-    highlight IcaroStartBanner guifg=#e63946 gui=bold
-    highlight IcaroStartSubtitle guifg=#7a7478 gui=italic
-    highlight IcaroStartKey guifg=#ff5d5d gui=bold
-    nnoremap <buffer><silent> q :q<CR>
-    autocmd BufWipeout <buffer> setlocal modifiable
-endfunction
-
-augroup icaro_start_screen
-    autocmd!
-    autocmd VimEnter * call s:ShowStartScreen()
-augroup END
 
 " ------------------------------------------------------------
 " Airline (barra inferior)
@@ -201,24 +173,18 @@ augroup END
 " A ideia aqui é reproduzir a leitura visual da referência:
 "   MODO › git:branch › [SIGLA] Tema › arquivo   ... posição / % / hora
 " O nome do tema aparece no rodapé e também no winbar do topo.
-if !get(g:, 'icaro_use_nerd_font', 0)
-    " Sem Nerd Font: usa triângulos Unicode comuns (▶/◀) em vez das
-    " setas powerline ( / ) — já dá o efeito de "bloco em seta" da
-    " referência, sem precisar instalar fonte nenhuma. Com Nerd Font
-    " (g:icaro_use_nerd_font = 1) essas linhas nem rodam: o Airline usa
-    " os glifos powerline de verdade, que encaixam sem nenhum espaço
-    " entre um bloco e o outro (g:airline_powerline_fonts, no vimrc).
-    if get(g:, 'icaro_powerline', 1)
-        let g:airline_left_sep = ''
-        let g:airline_right_sep = ''
-        let g:airline_left_alt_sep = ''
-        let g:airline_right_alt_sep = ''
-    else
-        let g:airline_left_sep = '▶'
-        let g:airline_right_sep = '◀'
-        let g:airline_left_alt_sep = '▶'
-        let g:airline_right_alt_sep = '◀'
-    endif
+" O install.sh instala a Nerd Font automaticamente; mantemos um fallback
+" para o caso de a fonte não poder ser baixada no momento da instalação.
+if get(g:, 'icaro_powerline', 1)
+    let g:airline_left_sep = ''
+    let g:airline_right_sep = ''
+    let g:airline_left_alt_sep = ''
+    let g:airline_right_alt_sep = ''
+else
+    let g:airline_left_sep = '▶'
+    let g:airline_right_sep = '◀'
+    let g:airline_left_alt_sep = '▶'
+    let g:airline_right_alt_sep = '◀'
 endif
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'
@@ -228,7 +194,11 @@ let g:airline#extensions#coc#warning_symbol = 'W:'
 
 " Contador de erros/avisos do coc na statusline (canto, perto do
 " filetype), igual a referência que você mandou
-let g:airline_section_x = airline#section#create(['coc_error_count', 'coc_warning_count', ' ', 'filetype'])
+if exists('*airline#section#create')
+    let g:airline_section_x = airline#section#create(['coc_error_count', 'coc_warning_count', ' ', 'filetype'])
+else
+    let g:airline_section_x = '%{get(g:, "coc_error_count", "")} %y'
+endif
 
 " Sem isso, seções inteiras da statusline (inclusive o indicador de
 " autocomplete) somem sozinhas em janelas estreitas — exatamente o
@@ -250,7 +220,11 @@ let g:airline#extensions#default#section_truncate_width = {
 let g:airline_section_a = '%{IcaroModeLabel()}'
 let g:airline_section_b = '%{IcaroGitBranch()}'
 let g:airline_section_c = '%{IcaroThemeBadge()} › %f%m'
-let g:airline_section_x = airline#section#create(['coc_error_count', 'coc_warning_count', ' ', 'filetype'])
+if exists('*airline#section#create')
+    let g:airline_section_x = airline#section#create(['coc_error_count', 'coc_warning_count', ' ', 'filetype'])
+else
+    let g:airline_section_x = '%{get(g:, "coc_error_count", "")} %y'
+endif
 let g:airline_section_y = '%{AutocompleteStatus()} %{InlayHintStatus()}'
 let g:airline_section_z = '%l:%v %3p%% ‹ %{IcaroClock()} ‹ %{CreditFooter()}'
 
