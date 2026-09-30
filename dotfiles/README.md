@@ -124,7 +124,8 @@ dotfiles/
 - **Cores do terminal**: edite `kitty/current-theme.conf`, ou troque de tema com
   `kitten themes` (kitty já vem com um seletor de temas embutido).
 - **Fonte**: mude `font_family` em `kitty/kitty.conf` (por padrão `JetBrainsMono Nerd Font`).
-- **Transparente ou preto total**: o `install.sh` pergunta (ou use `--transparent` / `--black`) e
+- **Cor translúcida ou cor sólida**: o `install.sh` pergunta (ou use `--transparent` / `--solid`; `--black` continua como alias) e
+- **Paletas do terminal**: Azul escuro, Noite, Grafite, Roxo escuro, Pastel, Pastel azul, Solarized escuro e Solarized claro.
   grava a escolha em `kitty/transparency.conf`, que o `kitty.conf` inclui por último. Edite esse
   arquivo (`background_opacity`, `background_blur`, `background`) pra ajustar depois.
 - **Transparência**: `background_opacity` em `kitty/transparency.conf` (0.0 a 1.0; quanto menor, mais

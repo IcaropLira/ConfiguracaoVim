@@ -822,7 +822,7 @@ inoremap <silent> <F4> <C-o>:call ToggleAutocomplete()<CR>
 
 `<C-o>` executa um único comando de modo normal e volta pro insert mode sozinho, automaticamente — é o jeito correto e padrão do Vim pra isso. Testamos digitando de verdade, apertando `F4` no meio da frase, sem tocar em `Esc` antes nem depois: o texto continuou entrando normalmente, parênteses e backspace incluídos.
 
-Se mesmo assim alguma tecla de função ainda se comportar de forma estranha no seu terminal específico, pode ser um conflito de sequência de escape do seu emulador de terminal com essa tecla — nesse caso, me avise qual tecla e qual terminal você usa.
+Além dos mapeamentos normais, o projeto agora tem uma camada de compatibilidade em `config/functionkeys.vim`: ela aceita as sequências mais comuns de xterm/VT100, Linux console e terminais que entregam Shift+F como CSI modificado. O `ttimeoutlen` do Vim também foi aumentado para não cortar sequências lentas em SSH/tmux, e o tmux foi ajustado para preservar teclas modificadas.
 
 ---
 

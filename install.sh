@@ -15,13 +15,15 @@
 #  pessoal (exceto pelo ~/.bashrc/~/.zshrc/~/.vimrc/~/.tmux.conf, que
 #  são arquivos de configuração seus, sempre com backup automático).
 #
-#  Também pergunta UMA VEZ se o terminal (kitty) deve ser transparente ou
-#  preto total, sem transparência.
+#  Também pergunta UMA VEZ se o terminal (kitty) deve ser translúcido ou
+#  de cor sólida, e qual paleta de cores usar.
 #
 #  Uso: ./install.sh [--user | --system] [--no-font] [--no-extras] [--copy]
-#                    [--transparent | --black]
+#                    [--transparent | --solid] [--palette=<nome>]
 #    --transparent terminal translúcido (pula a pergunta)
-#    --black       terminal preto total, sem transparência (pula a pergunta)
+#    --solid      terminal de cor sólida (pula a pergunta)
+#    --black      alias legado de --solid
+#    --palette    escolhe a paleta sem perguntar
 #    --user      força instalação sem sudo (pula a pergunta)
 #    --system    força instalação com sudo (pula a pergunta)
 #    --no-font   não instala a JetBrainsMono Nerd Font (kitty)
@@ -40,6 +42,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KITTY_ARGS=()
 FORCE_MODE=""
 TERM_STYLE=""
+TERM_PALETTE=""
 
 for arg in "$@"; do
     case "$arg" in
@@ -47,9 +50,10 @@ for arg in "$@"; do
         --system) FORCE_MODE="system" ;;
         --no-font|--no-extras|--copy) KITTY_ARGS+=("$arg") ;;
         --transparent) TERM_STYLE="transparent" ;;
-        --black)       TERM_STYLE="black" ;;
+        --solid|--black) TERM_STYLE="solid" ;;
+        --palette=*) TERM_PALETTE="${arg#--palette=}" ;;
         -h|--help)
-            echo "Uso: ./install.sh [--user | --system] [--no-font] [--no-extras] [--copy] [--transparent | --black]"
+            echo "Uso: ./install.sh [--user | --system] [--no-font] [--no-extras] [--copy] [--transparent | --solid] [--palette=<nome>]"
             exit 0
             ;;
     esac
@@ -83,24 +87,47 @@ else
     ok "Modo: instalação via gerenciador de pacotes do sistema, com sudo."
 fi
 
-# ---------- pergunta UMA VEZ o estilo do terminal (kitty) ----------
+# ---------- pergunta UMA VEZ o estilo + paleta do terminal (kitty) ----------
 if [ -z "$TERM_STYLE" ]; then
     echo
     echo "Como você quer o terminal (kitty)?"
-    echo "  1) Transparente (translúcido, com blur atrás)"
-    echo "  2) Preto total, sem transparência"
+    echo "  1) Cor translúcida (blur atrás)"
+    echo "  2) Cor sólida (sem transparência)"
     read -rp "Escolha [1/2] (padrão: 1) " resp_style || resp_style=""
     case "${resp_style:-1}" in
-        2|p|P|b|B) TERM_STYLE="black" ;;
-        *)         TERM_STYLE="transparent" ;;
+        2|s|S) TERM_STYLE="solid" ;;
+        *)     TERM_STYLE="transparent" ;;
     esac
 fi
-export ICARO_TERM_STYLE="$TERM_STYLE"
-if [ "$TERM_STYLE" = "black" ]; then
-    ok "Terminal: preto total, sem transparência."
-else
-    ok "Terminal: transparente."
+
+if [ -z "$TERM_PALETTE" ]; then
+    echo
+    echo "Qual paleta de cores você quer?"
+    echo "  1) Azul escuro"
+    echo "  2) Noite"
+    echo "  3) Grafite"
+    echo "  4) Roxo escuro"
+    echo "  5) Pastel"
+    echo "  6) Pastel azul"
+    echo "  7) Solarized escuro"
+    echo "  8) Solarized claro"
+    read -rp "Escolha [1-8] (padrão: 1) " resp_palette || resp_palette=""
+    case "${resp_palette:-1}" in
+        1) TERM_PALETTE="navy" ;;
+        2) TERM_PALETTE="midnight" ;;
+        3) TERM_PALETTE="graphite" ;;
+        4) TERM_PALETTE="purple" ;;
+        5) TERM_PALETTE="pastel" ;;
+        6) TERM_PALETTE="pastel_blue" ;;
+        7) TERM_PALETTE="solarized_dark" ;;
+        8) TERM_PALETTE="solarized_light" ;;
+        *) TERM_PALETTE="navy" ;;
+    esac
 fi
+
+export ICARO_TERM_STYLE="$TERM_STYLE"
+export ICARO_TERM_PALETTE="$TERM_PALETTE"
+ok "Terminal: $TERM_STYLE + paleta $TERM_PALETTE."
 
 SUMMARY=()
 

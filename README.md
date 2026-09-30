@@ -18,14 +18,15 @@ chmod +x install.sh
 ./install.sh
 ```
 
-Isso pergunta **uma única vez** se você tem acesso a sudo e se quer o terminal **transparente**
-ou **preto total, sem transparência** — nenhum dos três instaladores pergunta de novo — e instala kitty, tmux e Vim nessa ordem, com um resumo no final.
+Isso pergunta **uma única vez** se você tem acesso a sudo e se quer o terminal **translúcido**
+ou de **cor sólida, sem transparência**, e qual **paleta de cores** usar — nenhum dos três instaladores pergunta de novo — e instala kitty, tmux e Vim nessa ordem, com um resumo no final.
 
 ### Estilo do terminal sem perguntar
 
 ```bash
 ./install.sh --transparent   # translúcido, com blur
-./install.sh --black         # preto total, sem transparência
+./install.sh --solid         # cor sólida, sem transparência
+./install.sh --transparent --palette=navy   # translúcido + azul escuro
 ```
 
 Pra trocar depois, rode o instalador de novo ou edite `dotfiles/kitty/transparency.conf`.
