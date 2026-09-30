@@ -28,6 +28,14 @@ elif command -v batcat >/dev/null 2>&1; then
     alias bat='batcat'
 fi
 
+# catcode: o 'cat' original, cru — só o texto do arquivo, sem números de linha,
+# bordas nem cores (ideal pra copiar e colar). Como 'cat' vira 'bat' logo acima,
+# aqui chamamos o cat de verdade com 'command', que ignora o alias.
+# Uso: catcode arquivo [outros arquivos...]   (também lê de pipe: ... | catcode)
+catcode() {
+    command cat "$@"
+}
+
 # ---------- zoxide (cd mais esperto) ----------
 if command -v zoxide >/dev/null 2>&1 && [ -n "$_dotfiles_shell" ]; then
     eval "$(zoxide init "$_dotfiles_shell")"

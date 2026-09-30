@@ -160,7 +160,7 @@ O `install.sh` oferece instalar e já deixar configurado:
 |---|---|---|
 | [`starship`](https://starship.rs/) | Prompt de shell rápido, com segmentos de usuário/diretório/git/linguagem | `starship/starship.toml` |
 | [`eza`](https://github.com/eza-community/eza) | Substitui o `ls` (ícones, cores, árvore) — aliases `ls`, `ll`, `la`, `lt` | `shell/shellrc.sh` |
-| [`bat`](https://github.com/sharkdp/bat) | Substitui o `cat` com syntax highlighting | `shell/shellrc.sh` |
+| [`bat`](https://github.com/sharkdp/bat) | Substitui o `cat` com syntax highlighting (pra ver o arquivo cru, sem números de linha, use `catcode arquivo`) | `shell/shellrc.sh` |
 | [`zoxide`](https://github.com/ajeetdsouza/zoxide) | `cd` mais esperto — aprende os diretórios mais usados (alias `cd`) | `shell/shellrc.sh` |
 | [`fzf`](https://github.com/junegunn/fzf) | Busca fuzzy (`Ctrl+R` no histórico, `Ctrl+T` pra arquivos) | `shell/shellrc.sh` |
 
