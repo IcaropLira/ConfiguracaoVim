@@ -4,22 +4,21 @@ set fileencodings=utf-8
 set nocompatible
 filetype plugin indent on
 syntax enable
-" Cores: use truecolor quando o terminal realmente anuncia suporte.
-" O GNOME Terminal/VTE moderno suporta truecolor e precisa dele para
-" preservar as paletas dos temas; termguicolors não deve ser desativado
-" só porque $TERM é xterm-256color.
-if has('gui_running')
-    set termguicolors
-elseif $TERM =~# 'kitty'
-    set termguicolors
-elseif $COLORTERM =~? 'truecolor\|24bit'
-    set termguicolors
-elseif exists('$VTE_VERSION') && str2nr($VTE_VERSION) >= 5000
-    set termguicolors
-elseif $ICARO_TRUECOLOR ==# '1'
-    set termguicolors
-else
+" Cores: por padrão, ASSUME truecolor. A grande maioria dos terminais
+" usados hoje (inclusive o terminal "padrão" da maioria das
+" distros/labs) suporta 24-bit, mesmo sem anunciar isso via
+" $COLORTERM ou $VTE_VERSION — foi exatamente essa checagem restritiva
+" demais que deixava a aparência "feia" (cores erradas/achatadas) fora
+" do kitty: o terminal do laboratório suporta truecolor, só não avisa
+" que suporta. Só desligamos quando há um sinal CLARO de que não dá:
+" o console de texto puro do Linux (TERM=linux, sem X/Wayland
+" nenhum), TERM=dumb, ou se a pessoa forçar na mão com
+" $ICARO_TRUECOLOR=0 (por exemplo, numa sessão SSH antiga que
+" realmente não aguenta).
+if $TERM ==# 'linux' || $TERM ==# 'dumb' || $ICARO_TRUECOLOR ==# '0'
     set notermguicolors
+else
+    set termguicolors
 endif
 if exists('+ttyfast')
     set ttyfast
@@ -62,6 +61,9 @@ let g:icaro_powerline = get(g:, 'icaro_powerline', 1)
 " ------------------------------------------------------------
 let g:icaro_ac_state_file    = expand('~/.vim/.icaro_autocomplete_state')
 let g:icaro_inlay_state_file = expand('~/.vim/.icaro_inlayhints_state')
+let g:icaro_pairs_state_file = expand('~/.vim/.icaro_pairs_state')
+let g:icaro_header_state_file = expand('~/.vim/.icaro_header_state')
+let g:icaro_matchparen_state_file = expand('~/.vim/.icaro_matchparen_state')
 
 " Linguagens com toggle individual de autocomplete. Pra adicionar uma
 " nova linguagem no futuro, basta incluir o filetype dela aqui (e ter
@@ -88,11 +90,14 @@ function! s:ReadAutocompleteState(file, languages) abort
     return l:state
 endfunction
 
-function! s:ReadState(file, default) abort
+" Lê um arquivo de 1 linha ('0' ou '1') e devolve esse valor; se o
+" arquivo não existir ainda, devolve o padrão. Usado por todo toggle
+" simples (não-por-linguagem): IH, PA e o header (winbar).
+function! s:ReadFlag(file, default) abort
     if filereadable(a:file)
         let l:lines = readfile(a:file)
-        if !empty(l:lines) && l:lines[0] ==# '0'
-            return 0
+        if !empty(l:lines)
+            return l:lines[0] ==# '1' ? 1 : 0
         endif
     endif
     return a:default
@@ -101,7 +106,14 @@ endfunction
 " g:icaro_ac_state = {'cpp': 1, 'java': 0, 'python': 1, ...} — cada F4
 " só mexe na entrada do filetype do buffer atual (veja config/coc.vim).
 let g:icaro_ac_state         = s:ReadAutocompleteState(g:icaro_ac_state_file, g:icaro_ac_languages)
-let g:my_inlay_hints_enabled = s:ReadState(g:icaro_inlay_state_file, 1)
+let g:my_inlay_hints_enabled = s:ReadFlag(g:icaro_inlay_state_file, 1)
+let g:icaro_pairs_enabled    = s:ReadFlag(g:icaro_pairs_state_file, 1)
+" Header (winbar) começa VISÍVEL por padrão (0 = não oculto), a não
+" ser que a última escolha salva com Shift+F12 tenha sido esconder.
+let g:icaro_header_hidden    = s:ReadFlag(g:icaro_header_state_file, 0)
+" Highlight de parênteses/colchetes/chaves correspondentes (:h
+" matchparen) — Shift+F10, veja config/appearance.vim
+let g:icaro_matchparen_enabled = s:ReadFlag(g:icaro_matchparen_state_file, 1)
 
 " O coc.nvim continua iniciando normalmente sempre: como o toggle
 " agora é por linguagem (e não um interruptor único), quem decide se
@@ -130,6 +142,16 @@ function! InlayHintStatus() abort
     return get(g:, 'my_inlay_hints_enabled', 1) ? '[IH:ON]' : '[IH:OFF]'
 endfunction
 
+" PA = Pareamento Automático: fecha sozinho aspas/parênteses/colchetes/
+" `<>` ao digitar o caractere de abertura, e mostra o popup de "ajuda
+" de assinatura" (parâmetros da função) ao digitar "(" — dois
+" comportamentos que vêm da extensão coc-pairs e do coc.nvim (não do
+" autocomplete/coc_suggest em si, por isso F4 não desligava isso).
+" F10 liga/desliga os dois juntos — veja config/coc.vim.
+function! AutoPairsStatus() abort
+    return get(g:, 'icaro_pairs_enabled', 1) ? '[PA:ON]' : '[PA:OFF]'
+endfunction
+
 " O créditozinho é escrito por extenso a partir de códigos de
 " caractere de propósito (em vez de string literal), e reaplicado
 " sozinho se alguém apagar a linha da statusline/winbar — veja
@@ -148,7 +170,7 @@ endif
 let g:airline_section_a = '%{IcaroModeLabel()}'
 let g:airline_section_b = '%{IcaroGitBranch()}'
 let g:airline_section_c = '%{IcaroThemeBadge()} › %f%m'
-let g:airline_section_y = '%{AutocompleteStatus()} %{InlayHintStatus()}'
+let g:airline_section_y = '%{AutocompleteStatus()} %{InlayHintStatus()} %{AutoPairsStatus()}'
 let g:airline_section_z = '%l:%v %3p%% ‹ %{IcaroClock()} ‹ %{CreditFooter()}'
 
 " Editor

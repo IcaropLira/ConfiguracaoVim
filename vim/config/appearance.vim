@@ -72,6 +72,91 @@ function! IcaroDefineWinBarBlocks() abort
     call s:HiSet('WinBarSep32', l:s3bg, l:s3bgc, l:s2bg, l:s2bgc, 'NONE')
 endfunction
 
+function! s:BuildWinbar() abort
+    return '%#WinBarSeg1# %{IcaroModeLabel()} '
+          \ . '%#WinBarSep12#' . s:wb_sep_r
+          \ . '%#WinBarSeg2# %{IcaroThemeBadge()}  %f%m '
+          \ . '%='
+          \ . '%#WinBarSep32#' . s:wb_sep_l
+          \ . '%#WinBarSeg3# %{IcaroGitBranch()} '
+          \ . '%#WinBarSep32#' . s:wb_sep_l
+          \ . '%#WinBarSeg2# %{CreditFooter()} '
+endfunction
+
+" ------------------------------------------------------------
+" Header (winbar): liga/desliga com Shift+F12 (ver config/keymaps.vim
+" e o watchdog em config/credit.vim, que precisa saber que o
+" desligamento foi de propósito pra não religar sozinho).
+" ------------------------------------------------------------
+function! IcaroShowHeader() abort
+    if exists('+winbar')
+        let &winbar = s:BuildWinbar()
+    endif
+
+    " A barra que aparece no topo da captura é a TABLINE do
+    " vim-airline (não a WINBAR). As duas precisam acompanhar o
+    " mesmo toggle para o Shift+F12 realmente esconder tudo.
+    if exists('+showtabline')
+        set showtabline=2
+    endif
+endfunction
+
+function! IcaroHideHeader() abort
+    if exists('+winbar')
+        set winbar=
+    endif
+
+    if exists('+showtabline')
+        set showtabline=0
+    endif
+endfunction
+
+function! ToggleHeader() abort
+    let g:icaro_header_hidden = !get(g:, 'icaro_header_hidden', 0)
+    if g:icaro_header_hidden
+        call IcaroHideHeader()
+        echo 'Header: OCULTO'
+    else
+        call IcaroShowHeader()
+        echo 'Header: VISÍVEL'
+    endif
+    try
+        call writefile([g:icaro_header_hidden ? '1' : '0'], expand('~/.vim/.icaro_header_state'))
+    catch /.*/
+    endtry
+    redraw!
+endfunction
+
+" ------------------------------------------------------------
+" Highlight de parênteses/colchetes/chaves correspondentes (o par
+" fica destacado quando o cursor está em cima de um deles ou logo
+" depois) — vem do plugin nativo do Vim (:h matchparen), carregado
+" sozinho por causa do 'filetype plugin indent on' lá no topo do
+" ~/.vimrc. Shift+F10 liga/desliga (ver config/keymaps.vim).
+" ------------------------------------------------------------
+function! ToggleMatchParen() abort
+    let g:icaro_matchparen_enabled = !get(g:, 'icaro_matchparen_enabled', 1)
+    if g:icaro_matchparen_enabled
+        silent! DoMatchParen
+        echo 'Highlight de parênteses/colchetes/chaves correspondentes: LIGADO'
+    else
+        silent! NoMatchParen
+        echo 'Highlight de parênteses/colchetes/chaves correspondentes: DESLIGADO'
+    endif
+    try
+        call writefile([g:icaro_matchparen_enabled ? '1' : '0'], expand('~/.vim/.icaro_matchparen_state'))
+    catch /.*/
+    endtry
+    redrawstatus!
+endfunction
+
+" O plugin matchparen já carregou nesse ponto (via 'filetype plugin
+" indent on' no topo do ~/.vimrc) — se a última escolha salva foi
+" desligar, desliga ele agora.
+if !get(g:, 'icaro_matchparen_enabled', 1)
+    silent! NoMatchParen
+endif
+
 if exists('+winbar')
     call IcaroDefineWinBarBlocks()
     augroup icaro_winbar_blocks
@@ -80,16 +165,15 @@ if exists('+winbar')
         autocmd ColorScheme * call IcaroDefineWinBarBlocks()
     augroup END
 
-    " Cabeçalho: blocos reais de Powerline.
+    " Cabeçalho: blocos reais de Powerline + tabline do Airline.
     " Esquerda = modo + tema/arquivo | direita = branch + crédito.
-    let &winbar = '%#WinBarSeg1# %{IcaroModeLabel()} '
-          \ . '%#WinBarSep12#' . s:wb_sep_r
-          \ . '%#WinBarSeg2# %{IcaroThemeBadge()}  %f%m '
-          \ . '%='
-          \ . '%#WinBarSep32#' . s:wb_sep_l
-          \ . '%#WinBarSeg3# %{IcaroGitBranch()} '
-          \ . '%#WinBarSep32#' . s:wb_sep_l
-          \ . '%#WinBarSeg2# %{CreditFooter()} '
+    " (a menos que a última escolha salva com Shift+F12 tenha sido
+    " ocultar — nesse caso já nasce oculto)
+    if get(g:, 'icaro_header_hidden', 0)
+        call IcaroHideHeader()
+    else
+        call IcaroShowHeader()
+    endif
 endif
 
 " ------------------------------------------------------------
@@ -225,7 +309,7 @@ if exists('*airline#section#create')
 else
     let g:airline_section_x = '%{get(g:, "coc_error_count", "")} %y'
 endif
-let g:airline_section_y = '%{AutocompleteStatus()} %{InlayHintStatus()}'
+let g:airline_section_y = '%{AutocompleteStatus()} %{InlayHintStatus()} %{AutoPairsStatus()}'
 let g:airline_section_z = '%l:%v %3p%% ‹ %{IcaroClock()} ‹ %{CreditFooter()}'
 
 " ------------------------------------------------------------
@@ -242,6 +326,8 @@ if !exists('g:loaded_airline')
     set statusline+=\ ›\ %f\ %m
     set statusline+=\ %=
     set statusline+=%{exists('*AutocompleteStatus')?AutocompleteStatus():''}
+    set statusline+=\ %{exists('*InlayHintStatus')?InlayHintStatus():''}
+    set statusline+=\ %{exists('*AutoPairsStatus')?AutoPairsStatus():''}
     set statusline+=\ │\ 
     set statusline+=%y
     set statusline+=\ │\ 

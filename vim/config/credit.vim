@@ -40,8 +40,10 @@ function! s:EnsureCreditEverywhere() abort
         silent! AirlineRefresh
     endif
 
-    " winbar
-    if exists('+winbar') && &winbar !~# 'CreditFooter'
+    " winbar (a menos que Shift+F12 tenha pedido pra ocultar de
+    " propósito — nesse caso o watchdog não deve religar sozinho)
+    if !get(g:, 'icaro_header_hidden', 0)
+                \ && exists('+winbar') && &winbar !~# 'CreditFooter'
         set winbar=%#WinBarSeg1#\ %{IcaroModeLabel()}\ %#WinBarSep12#%#WinBarSeg2#\ %{IcaroThemeBadge()}\ %f%m\ %=\ %#WinBarSep32#%#WinBarSeg3#\ %{IcaroGitBranch()}\ %#WinBarSep32#%#WinBarSeg2#\ %{CreditFooter()}\ 
     endif
 endfunction

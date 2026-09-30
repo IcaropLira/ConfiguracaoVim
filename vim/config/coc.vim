@@ -24,11 +24,14 @@ if !exists('g:coc_config_home')
 endif
 
 if !isdirectory(expand('~/.vim/pack/plugins/opt/coc.nvim'))
-    " Sem o coc.nvim instalado, F4/F3 não fazem nada e não quebram
+    " Sem o coc.nvim instalado, F4/F3/F10 não fazem nada e não quebram
     function! ToggleAutocomplete() abort
         echo 'coc.nvim não está instalado (rode install.sh de novo)'
     endfunction
     function! ToggleInlayHints() abort
+        echo 'coc.nvim não está instalado (rode install.sh de novo)'
+    endfunction
+    function! ToggleAutoPairs() abort
         echo 'coc.nvim não está instalado (rode install.sh de novo)'
     endfunction
     finish
@@ -81,6 +84,69 @@ augroup icaro_coc_per_language_state
     autocmd FileType * call s:ApplyAutocompleteStateToBuffer()
     autocmd BufEnter * call s:ApplyAutocompleteStateToBuffer()
 augroup END
+
+" ------------------------------------------------------------
+" PA (Pareamento Automático): fechar sozinho aspas/parênteses/
+" colchetes/chaves/`<>` ao digitar o caractere de abertura, e o popup
+" de "ajuda de assinatura" (parâmetros da função) que aparece sozinho
+" ao digitar "(" — os dois vêm de fora do nosso mapeamento de teclas
+" (o fechamento é da extensão coc-pairs, se estiver instalada; o
+" popup é o "signature.enable" do próprio coc.nvim) e por isso F4
+" (autocomplete) não tinha efeito nenhum sobre eles: são recursos
+" diferentes, com liga/desliga próprio, F10.
+" ------------------------------------------------------------
+
+" Mesma lista padrão de caracteres que a extensão coc-pairs habilita
+" (:h coc-pairs, opção 'pairs.enableCharacters') — desligar PA
+" desabilita o fechamento automático de todos eles.
+let g:icaro_pairs_characters = ['(', '[', '{', '<', "'", '"', '`', '【', '「', '《', '『']
+
+function! s:ApplyPairsStateToBuffer() abort
+    let b:coc_pairs_disabled = g:icaro_pairs_enabled ? [] : g:icaro_pairs_characters
+endfunction
+
+augroup icaro_coc_pairs_state
+    autocmd!
+    autocmd FileType * call s:ApplyPairsStateToBuffer()
+    autocmd BufEnter * call s:ApplyPairsStateToBuffer()
+augroup END
+
+function! ToggleAutoPairs() abort
+    let g:icaro_pairs_enabled = !g:icaro_pairs_enabled
+
+    " Aplica na hora em todos os buffers já abertos, não só no atual
+    for l:bufnr in range(1, bufnr('$'))
+        if bufexists(l:bufnr)
+            call setbufvar(l:bufnr, 'coc_pairs_disabled',
+                        \ g:icaro_pairs_enabled ? [] : g:icaro_pairs_characters)
+        endif
+    endfor
+
+    " O popup de "ajuda de assinatura" é um recurso separado do
+    " coc.nvim (não da extensão coc-pairs) — desligamos ele junto,
+    " já que o pedido original juntava os dois ("fechando parênteses
+    " ... e aparecendo alguns pop-ups"). updateConfig muda a
+    " configuração em tempo real, sem precisar reiniciar o coc.
+    try
+        call CocAction('updateConfig', 'signature.enable', g:icaro_pairs_enabled ? v:true : v:false)
+    catch /.*/
+        " coc.nvim ainda não terminou de subir, ou não tem essa
+        " configuração nessa versão — sem problema, só o fechamento
+        " de pares já foi desligado/ligado acima
+    endtry
+
+    if g:icaro_pairs_enabled
+        echo 'Fechamento automático de parênteses/aspas/colchetes e popup de assinatura: LIGADO'
+    else
+        echo 'Fechamento automático de parênteses/aspas/colchetes e popup de assinatura: DESLIGADO'
+    endif
+
+    try
+        call writefile([g:icaro_pairs_enabled ? '1' : '0'], g:icaro_pairs_state_file)
+    catch /.*/
+    endtry
+    redrawstatus!
+endfunction
 
 " ------------------------------------------------------------
 " Teclas básicas de edição

@@ -1,0 +1,2118 @@
+# Vim Codeforces / Java IDE — Configuração Ícaro Lira
+
+Configuração portátil de **Vim para programação competitiva e desenvolvimento em Java**, pensada principalmente para **Codeforces, OBI, maratonas, exercícios de algoritmos em C++ e Java**.
+
+A ideia é transformar o Vim em um pequeno IDE: tema bonito, números de linha, statusline, explorer em árvore com ícones, autocomplete tipo IDE (com toggle rápido), templates automáticos, compilação rápida, execução, testes com `input.txt`, terminal e atalhos para navegação.
+
+---
+
+# 1. O que essa configuração possui?
+
+## Interface
+
+- Tema próprio **preto + vermelho** (`icaro`), moderno e escuro — construído do zero pra essa configuração (veja seção 13)
+- `vim-airline` para uma statusline completa: modo atual, git branch (se `vim-fugitive`/similar existir), nome do arquivo, indicador de autocomplete, posição do cursor e um créditozinho, tudo combinando com o tema
+- Barra de buffers (`tabline`) no topo, estilo abas de IDE
+- Números de linha (absoluto + relativo)
+- Linha atual destacada
+- Separadores de janelas estilizados
+- Winbar quando suportada pela versão do Vim
+- Menu de autocomplete (popup) estilizado combinando com o tema
+- True Color, com correção específica para funcionar dentro do tmux
+- Mouse habilitado
+- Clipboard do sistema
+
+## Explorer de arquivos (estilo IDE)
+
+- `NERDTree` como painel lateral de arquivos, com `vim-devicons` (ícones por tipo de arquivo)
+- Atalho único (`F2`) pra abrir/fechar
+
+## Autocomplete "de verdade" (estilo IDE)
+
+- `coc.nvim` como motor de autocomplete (LSP), com suporte a Java via `coc-java`, C++ via `coc-clangd` e Python via `coc-pyright`
+- Ir para definição, ver referências, documentação ao passar o cursor (`K`), renomear símbolo
+- **Liga/desliga com uma tecla** (`F4`), **individual por linguagem**: C++, Java e Python guardam cada um o seu próprio estado, então dá pra ter, por exemplo, autocomplete ligado em Java e Python e desligado em C++ ao mesmo tempo. Indicador visual permanente na statusline mostrando se a linguagem do arquivo atual está ligada ou desligada
+- **`F10`** liga/desliga, separadamente, o fechamento automático de parênteses/aspas/colchetes/`<>` e o popup de "ajuda de assinatura" (parâmetros da função) — veja seção 45
+
+## Programação competitiva / desenvolvimento
+
+- Template automático para `.cpp` e para `.java` (dois templates de Java: um "estilo IDE" e um de programação competitiva — veja seção 6)
+- Compilação C++ com:
+
+```bash
+g++ -std=c++17 -O2 -Wall -Wextra
+```
+
+- Compilação/execução Java com `javac`/`java`
+- Execução rápida
+- Compilar + executar com uma tecla
+- Teste automático usando `input.txt`
+- Terminal integrado
+- Navegação rápida entre janelas
+
+---
+
+# 2. Instalação rápida
+
+## Método recomendado
+
+Primeiro obtenha o projeto:
+
+```bash
+git clone <SEU_REPOSITORIO>
+cd vim-codeforces-ide
+```
+
+Depois torne o instalador executável:
+
+```bash
+chmod +x install.sh
+```
+
+Execute:
+
+```bash
+./install.sh
+```
+
+Depois:
+
+```bash
+vim
+```
+
+**Não é necessário `sudo` para instalar a configuração do Vim.**
+
+O instalador copia tudo para:
+
+```text
+~/.vim/
+~/.vimrc
+```
+
+Também cria automaticamente um backup do seu `.vimrc` anterior, caso exista.
+
+---
+
+# 3. Se Vim, Git, g++, JDK ou Node.js não estiverem instalados
+
+O projeto foi pensado para Linux.
+
+Além do Vim, Git e g++ (para C++), você também vai precisar de:
+
+- **JDK** (17 ou mais recente) — para compilar/executar Java e para o `coc-java` funcionar
+- **Node.js** — obrigatório para o `coc.nvim` (o motor de autocomplete). Sem Node.js, o autocomplete simplesmente não liga, mas o resto da configuração continua funcionando normalmente.
+
+## Ubuntu / Debian / Linux Mint
+
+```bash
+sudo apt update
+sudo apt install vim git g++ default-jdk nodejs npm
+```
+
+Depois confira:
+
+```bash
+vim --version
+git --version
+g++ --version
+javac --version
+node --version
+```
+
+---
+
+## Fedora
+
+```bash
+sudo dnf install vim git gcc-c++ java-17-openjdk-devel nodejs npm
+```
+
+Confira:
+
+```bash
+vim --version
+git --version
+g++ --version
+javac --version
+node --version
+```
+
+---
+
+## Arch Linux / Manjaro
+
+```bash
+sudo pacman -S vim git gcc jdk-openjdk nodejs npm
+```
+
+Confira:
+
+```bash
+vim --version
+git --version
+g++ --version
+javac --version
+node --version
+```
+
+---
+
+# 4. Instalação manual completa
+
+Se você não quiser usar `install.sh`, pode instalar tudo manualmente.
+
+## 4.1 Criar diretórios
+
+```bash
+mkdir -p ~/.vim/config
+mkdir -p ~/.vim/templates
+mkdir -p ~/.vim/pack/plugins/opt
+```
+
+Repare que agora **todos** os plugins vão para `pack/plugins/opt` (não `start`). Isso é proposital: o `~/.vimrc` carrega cada um explicitamente com `packadd!`, na ordem certa (isso importa principalmente pro `vim-devicons`, que precisa carregar depois do NERDTree).
+
+---
+
+## 4.2 Instalar o tema (preto + vermelho)
+
+Diferente dos outros, esse não vem de um repositório externo: é um tema
+próprio, feito sob medida pra essa configuração, e já vem dentro da
+pasta `theme/icaro-theme` deste projeto. Só copiar:
+
+```bash
+cp -r theme/icaro-theme ~/.vim/pack/plugins/opt/icaro-theme
+```
+
+Ele inclui o colorscheme (`colors/icaro.vim`) e o tema do airline
+(`autoload/airline/themes/icaro.vim`) — os dois já combinando entre si.
+
+---
+
+## 4.3 Instalar vim-airline e temas
+
+```bash
+git clone --depth 1 \
+https://github.com/vim-airline/vim-airline.git \
+~/.vim/pack/plugins/opt/vim-airline
+
+git clone --depth 1 \
+https://github.com/vim-airline/vim-airline-themes.git \
+~/.vim/pack/plugins/opt/vim-airline-themes
+```
+
+---
+
+## 4.4b Terminal do laboratório: limpeza automática ao sair
+
+A instalação cria `~/.local/bin/vim`, um pequeno wrapper que chama o Vim real e, somente depois que ele termina, restaura o TTY e limpa a tela. Isso evita o efeito em que o fundo do tema permanece desenhado no GNOME Terminal depois de `:q` e você precisa executar `clear` manualmente.
+
+O Vim agora assume truecolor (24-bit) por padrão em qualquer terminal — inclusive o terminal "comum" do laboratório, que geralmente suporta isso mesmo sem anunciar. Só volta pra 256 cores automaticamente no console de texto puro do Linux (sem X/Wayland) ou em `TERM=dumb`; se algum terminal específico realmente não aguentar truecolor, force 256 cores com `ICARO_TRUECOLOR=0 vim`.
+
+## 4.4 Instalar NERDTree + ícones
+
+```bash
+git clone --depth 1 \
+https://github.com/preservim/nerdtree.git \
+~/.vim/pack/plugins/opt/nerdtree
+
+git clone --depth 1 \
+https://github.com/Xuyuanp/nerdtree-git-plugin.git \
+~/.vim/pack/plugins/opt/nerdtree-git-plugin
+
+git clone --depth 1 \
+https://github.com/tpope/vim-fugitive.git \
+~/.vim/pack/plugins/opt/vim-fugitive
+
+git clone --depth 1 \
+https://github.com/ryanoasis/vim-devicons.git \
+~/.vim/pack/plugins/opt/vim-devicons
+```
+
+**Importante:** o `install.sh` já instala a JetBrainsMono Nerd Font no espaço do usuário e tenta ativá-la automaticamente no GNOME Terminal. Em outros emuladores, a fonte fica disponível para seleção.
+
+---
+
+## 4.5 Instalar o motor de autocomplete (coc.nvim)
+
+```bash
+git clone --branch release --depth 1 \
+https://github.com/neoclide/coc.nvim.git \
+~/.vim/pack/plugins/opt/coc.nvim
+```
+
+Depois, dentro do vim, instale o suporte a Java:
+
+```vim
+:CocInstall coc-java
+```
+
+Na primeira vez que você abrir um `.java`, o `coc-java` baixa o Eclipse JDT Language Server — isso pode demorar um pouco e precisa de internet.
+
+---
+
+# 5. Estrutura dos arquivos
+
+Depois da instalação:
+
+```text
+~/.vim/
+├── config/
+│   ├── appearance.vim
+│   ├── coc.vim
+│   ├── cpp.vim
+│   ├── java.vim
+│   ├── explorer.vim
+│   ├── keymaps.vim
+│   └── search.vim
+│
+├── templates/
+│   ├── cpp.cpp
+│   ├── java_main.java
+│   ├── java_cp.java
+│   └── coc-settings.json
+│
+└── pack/
+    └── plugins/
+        └── opt/
+            ├── icaro-theme/
+            ├── vim-airline/
+            ├── vim-airline-themes/
+            ├── vim-fugitive/
+            ├── nerdtree/
+            ├── nerdtree-git-plugin/
+            ├── vim-devicons/
+            └── coc.nvim/
+
+~/.vim/coc-settings.json
+~/.vimrc
+```
+
+O arquivo principal é:
+
+```text
+~/.vimrc
+```
+
+---
+
+# 6. Criando um problema novo (C++)
+
+Basta fazer:
+
+```bash
+vim main.cpp
+```
+
+O Vim detecta que é um arquivo `.cpp` novo e coloca automaticamente o template.
+
+O template fica em:
+
+```text
+~/.vim/templates/cpp.cpp
+```
+
+Template padrão:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+void solve() {
+
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int t = 1;
+    cin >> t;
+
+    while (t--) {
+        solve();
+    }
+
+    return 0;
+}
+```
+
+---
+
+# 6.1 Criando um problema novo (Java)
+
+Duas situações:
+
+## Template "estilo IDE" (padrão)
+
+```bash
+vim Solution.java
+```
+
+Gera automaticamente uma classe pública com o **mesmo nome do arquivo** (do jeito que uma IDE de verdade faz):
+
+```java
+public class Solution {
+
+    public static void main(String[] args) {
+
+    }
+}
+```
+
+## Template de programação competitiva
+
+Se o nome do arquivo terminar com `_cp` (antes do `.java`), o template muda para uma versão com entrada/saída rápida, pronta pra múltiplos casos de teste:
+
+```bash
+vim A_cp.java
+```
+
+```java
+import java.io.*;
+import java.util.*;
+
+class Main {
+    // ... leitura rápida com BufferedReader/StringTokenizer,
+    // loop de múltiplos casos de teste, método solve() pra você preencher
+}
+```
+
+Repare que essa classe **não é `public`**, de propósito: assim ela compila normalmente independente do nome do arquivo (`A_cp.java`, `B_cp.java`, etc. todos geram sempre a classe `Main`).
+
+Quer trocar o sufixo `_cp` por outra coisa? Edite a variável no topo de `~/.vim/config/java.vim`:
+
+```vim
+let g:java_cp_suffix = '_cp'
+```
+
+---
+
+# 7. Atalhos principais
+
+## Geral
+
+| Tecla | Função |
+|---|---|
+| `F1` | Trocar de tema (mostra popup com o nome por ~1,6s) |
+| `Shift+Backspace` / `Ctrl+Backspace` | Apaga um par vazio `()`, `[]`, `{}`, `""`, `''` de uma vez |
+
+## C++ e Java
+
+Os atalhos são os mesmos, mas cada um chama o compilador certo dependendo do arquivo aberto (`.cpp` usa `g++`, `.java` usa `javac`/`java`):
+
+| Tecla | Função |
+|---|---|
+| `F5` | Compilar |
+| `F6` | Executar |
+| `F7` | Compilar + executar |
+| `F8` | Compilar + executar com `input.txt` |
+| `F9` | Abrir terminal |
+
+## Autocomplete
+
+| Tecla | Função |
+|---|---|
+| `F4` | Liga/desliga o autocomplete **da linguagem do arquivo atual** (C++/Java/Python — persistente, em tempo real, independente entre elas) |
+| `F3` | Liga/desliga só as dicas de parâmetro inline (persistente, em tempo real) |
+| `F10` | Liga/desliga o fechamento automático de parênteses/aspas/colchetes/`<>` e o popup de "ajuda de assinatura" — persistente, único pra todas as linguagens (não é por linguagem, veja seção 45) |
+| `Shift+F10` | Liga/desliga o highlight do par de parênteses/colchetes/chaves correspondente ao cursor (`:h matchparen`) — persistente, veja seção 46 |
+| `Shift+F12` | Mostra/esconde o header (tabline + winbar) no topo da janela — persistente, veja seção 46 |
+| `gd` | Ir para definição |
+| `gy` | Ir para definição do tipo |
+| `gr` | Ver referências |
+| `K` | Mostrar documentação do símbolo sob o cursor |
+| `<leader>rn` | Renomear símbolo |
+| `<leader>oi` | Organizar imports |
+| `<leader>s` | Mostrar assinatura do método (parâmetros) |
+| `Tab` / `Shift+Tab` | Navegar nas sugestões (quando o menu de autocomplete está visível) |
+| `Enter` | Confirmar sugestão selecionada |
+| `Ctrl+j` / `Ctrl+k` | Pular entre os parâmetros de um método aceito |
+
+
+Quando o autocomplete da linguagem do arquivo atual está ligado, a statusline mostra `[AC:ON]`; quando desligado, `[AC:OFF]` (fora de C++/Java/Python, mostra `[AC:--]`, já que `F4` não se aplica). O estado é individual por linguagem e salvo em disco — fechar e abrir o vim de novo mantém a escolha de cada uma (`F3` continua sendo um interruptor único, válido pra todas as linguagens).
+
+---
+
+## Arquivos
+
+| Tecla | Função |
+|---|---|
+| `F2` | Abrir Explorer |
+| `Ctrl+S` | Salvar |
+| `Tab` | Próximo buffer |
+| `Shift+Tab` | Buffer anterior |
+
+---
+
+## Janelas
+
+| Tecla | Função |
+|---|---|
+| `Ctrl+H` | Janela à esquerda |
+| `Ctrl+J` | Janela abaixo |
+| `Ctrl+K` | Janela acima |
+| `Ctrl+L` | Janela à direita |
+
+---
+
+## Busca
+
+| Tecla | Função |
+|---|---|
+| `/texto` | Procurar |
+| `n` | Próxima ocorrência |
+| `N` | Ocorrência anterior |
+| `Esc` | Limpar highlight |
+
+Também existe:
+
+```text
+<leader>h
+```
+
+para limpar o highlight.
+
+Por padrão, `<leader>` é `\`.
+
+Então:
+
+```text
+\h
+```
+
+limpa o highlight.
+
+---
+
+# 8. Fluxo recomendado para Codeforces
+
+Imagine que você recebeu o problema A.
+
+Crie:
+
+```bash
+mkdir -p contests/round
+cd contests/round
+vim A.cpp
+```
+
+O template aparece automaticamente.
+
+Escreva sua solução.
+
+Depois:
+
+### Compilar
+
+Pressione:
+
+```text
+F5
+```
+
+Equivale aproximadamente a:
+
+```bash
+g++ -std=c++17 -O2 -Wall -Wextra A.cpp -o A
+```
+
+---
+
+### Executar
+
+Pressione:
+
+```text
+F6
+```
+
+---
+
+### Compilar e executar
+
+Pressione:
+
+```text
+F7
+```
+
+Esse é o atalho principal para competição.
+
+Ele faz:
+
+```text
+salvar
+  ↓
+compilar
+  ↓
+se compilou
+  ↓
+executar
+```
+
+---
+
+# 9. Testando com input.txt
+
+Crie:
+
+```bash
+touch input.txt
+```
+
+Coloque o teste dentro:
+
+```text
+5
+1
+2
+3
+4
+5
+```
+
+Depois pressione:
+
+```text
+F8
+```
+
+O Vim executará aproximadamente:
+
+```bash
+g++ -std=c++17 -O2 -Wall -Wextra A.cpp -o A
+./A < input.txt
+```
+
+Isso é muito útil para testar exemplos do enunciado.
+
+---
+
+# 10. Executável gerado
+
+Se você estiver editando:
+
+```text
+A.cpp
+```
+
+o compilador gera:
+
+```text
+A
+```
+
+No Linux, o executável fica no mesmo diretório.
+
+Você pode remover manualmente depois:
+
+```bash
+rm A
+```
+
+Ou limpar vários executáveis:
+
+```bash
+rm -f A B C D E F G
+```
+
+---
+
+# 11. Terminal dentro do Vim
+
+Pressione:
+
+```text
+F9
+```
+
+Isso abre:
+
+```vim
+:terminal
+```
+
+No terminal você pode executar comandos normalmente.
+
+Por exemplo:
+
+```bash
+ls
+g++ --version
+./A
+```
+
+Para sair do modo de terminal e voltar ao Vim:
+
+```text
+Ctrl-\ Ctrl-N
+```
+
+Depois você pode navegar normalmente.
+
+---
+
+# 12. Explorer de arquivos (NERDTree)
+
+Pressione:
+
+```text
+F2
+```
+
+O Vim abre/fecha um painel lateral com o **NERDTree**, com ícones por tipo de arquivo (via `vim-devicons`) — bem mais parecido com o explorer de uma IDE do que o netrw padrão.
+
+Comandos úteis dentro do NERDTree:
+
+| Tecla | Ação |
+|---|---|
+| `Enter` ou `o` | Abrir arquivo/diretório |
+| `t` | Abrir em nova aba |
+| `i` | Abrir em split horizontal |
+| `s` | Abrir em split vertical |
+| `m` | Menu (criar, renomear, mover, deletar) |
+| `R` | Atualizar a árvore |
+| `q` | Fechar o NERDTree |
+
+**Se os ícones aparecerem como caixinhas/quadrados:** rode novamente o `install.sh` para reinstalar a JetBrainsMono Nerd Font. No GNOME Terminal a instalação tenta selecionar a fonte automaticamente.
+
+Se o `NERDTree` não estiver instalado por algum motivo, a configuração cai de volta pro `netrw` nativo do Vim (mesmo atalho `F2` não vai funcionar nesse caso; use `:Explore`).
+
+---
+
+# 13. Tema preto + vermelho, e o problema do indicador sumindo no tmux
+
+O tema (`colors/icaro.vim` + o tema do airline correspondente, dentro de `theme/icaro-theme/`) foi feito do zero pra essa configuração: fundo bem preto, statusline, sidebar, popups e bordas predominantemente em tons de vermelho/preto. O código em si continua colorido normalmente (verde pra strings, âmbar pra números, azul pra tipos, laranja pra funções) — só a "casca" da interface que segue a paleta preto+vermelho.
+
+## Por que o "AC ON/OFF" sumia dentro do tmux
+
+O `vim-airline` esconde seções inteiras da statusline quando a janela fica estreita demais — por padrão, a seção onde fica o indicador de autocomplete só aparecia com a janela tendo pelo menos **80 colunas**. Um painel de tmux dividido facilmente fica menor que isso, daí o indicador sumir sem nenhum erro aparecer.
+
+A correção (já aplicada em `config/appearance.vim`) desliga esse truncamento:
+
+```vim
+let g:airline#extensions#default#section_truncate_width = {
+      \ 'b': 0, 'x': 0, 'y': 0, 'z': 0,
+      \ 'warning': 0, 'error': 0, 'warning2': 0,
+      \ }
+```
+
+Com isso o indicador (e o créditozinho) ficam visíveis mesmo em janelas bem estreitas. Isso foi verificado diretamente: numa janela de 40 colunas, o texto `[AC:ON]` continua aparecendo na seção certa da statusline.
+
+Havia ainda uma segunda causa, mais sutil: o `vim-airline` monta a primeira versão da statusline **antes** do `VimEnter` disparar, então só sobrescrever a variável global depois (como a configuração original fazia) não bastava — ele não redesenhava sozinho. Por isso as funções `AutocompleteStatus()`/`CreditFooter()` e as seções `g:airline_section_y`/`g:airline_section_z` agora ficam definidas bem no topo do `~/.vimrc`, antes de qualquer plugin carregar.
+
+## Cores estranhas/lavadas dentro do tmux
+
+Isso normalmente é o tmux não estando configurado pra repassar true color (24 bits) pro Vim. Adicione ao seu `~/.tmux.conf`:
+
+```tmux
+set -g default-terminal "tmux-256color"
+set -ga terminal-overrides ",*:RGB"
+```
+
+E reinicie o tmux (`tmux kill-server` e abra de novo, ou `tmux source-file ~/.tmux.conf`).
+
+Mesmo sem isso, o tema tem um fallback de 256 cores (aproximações da paleta preto+vermelho) configurado, então nunca fica totalmente quebrado — só um pouco menos fiel às cores exatas.
+
+---
+
+# 14. Correções: teclado travando, cores em conflito, toggle não persistente
+
+Esta seção documenta uma leva de correções feitas depois de relatos de uso real.
+
+## O teclado travava com o autocomplete desligado
+
+**Causa raiz:** o mapeamento da tecla `Tab` chamava `coc#refresh()` sempre que você não estava no meio de uma sugestão — inclusive com o autocomplete desligado no `F4`. Só que `coc#refresh()` tenta reiniciar o serviço do coc.nvim no meio da digitação, o que deixava o `Tab`, o `Enter` e a digitação em geral instáveis.
+
+**Correção:** todo mapeamento que chama alguma função `coc#*` agora checa `IcaroAutocompleteEnabled()` primeiro (essa função olha o estado salvo da linguagem do buffer atual — veja seção 44). Desligado, essas teclas viram o comportamento nativo do Vim, sem passar perto do coc:
+
+```vim
+inoremap <silent><expr> <TAB>
+            \ !IcaroAutocompleteEnabled() ? "\<Tab>" :
+            \ coc#pum#visible() ? coc#pum#next(1) :
+            \ CheckBackspace() ? "\<Tab>" :
+            \ coc#refresh()
+```
+
+Isso foi testado digitando de verdade (parênteses, chaves, backspace) com o autocomplete desligado, num terminal real — sem travar.
+
+## Cores em conflito (texto vermelho em cima de seleção vermelha)
+
+O menu de sugestões usa o grupo `CocPumSearch` (o texto que bate com o que você digitou) linkado por padrão a `CocSearch`. Esse grupo estava vermelho, e a linha selecionada no menu (`PmenuSel`) também tinha fundo vermelho — resultado: texto vermelho em cima de fundo vermelho, ilegível.
+
+**Correção:**
+- `PmenuSel` agora é fundo vermelho escuro + texto branco (bem legível)
+- `CocSearch`/`CocPumSearch` (o texto buscado) virou âmbar — contrasta com fundo escuro normal E com a seleção vermelha escura
+- As dicas de parâmetro inline (`CocInlayHint`) ganharam uma cor cinza-clara própria, em vez de ficar escura demais e sumir no fundo preto
+
+## O toggle do autocomplete não era persistente
+
+Antes, `F4` só valia pra sessão atual — fechar e abrir o vim voltava tudo pro padrão (ligado). Agora:
+
+- Toda vez que você aperta `F4`, o estado (0 ou 1) **da linguagem do buffer atual** é salvo em `~/.vim/.icaro_autocomplete_state`
+- Esse arquivo é lido **antes** de qualquer plugin carregar (bem no topo do `~/.vimrc`)
+- Resultado: se você deixar C++ desligado, da próxima vez que abrir o vim o C++ já nasce desligado — e Java/Python continuam do jeito que você deixou cada um, independentemente
+
+Isso foi verificado num teste de ida e volta completo: desligar C++ → nova sessão (C++ continua desligado, Java/Python continuam ligados) → religar C++ → nova sessão (tudo ligado de novo). Veja a seção 44 para os detalhes de como o toggle passou a ser por linguagem.
+
+## Novo atalho: `F3` — só as dicas de parâmetro
+
+Separado do `F4` (que liga/desliga o autocomplete inteiro), o `F3` liga/desliga só aquele texto fantasma que aparece dentro das chamadas de método (tipo `println(/* x: */ valor)`), sem mexer nas sugestões normais. Também é persistente, salvo em `~/.vim/.icaro_inlayhints_state`.
+
+## Nerd Font instalada automaticamente no laboratório
+
+Antes, os ícones do NERDTree e as setinhas "powerline" da statusline dependiam de você ter uma Nerd Font instalada — sem isso, ficavam caixinhas quebradas. Agora o `install.sh` instala a JetBrainsMono Nerd Font automaticamente no espaço do usuário, sem pedir confirmação e sem exigir sudo:
+
+- **JetBrainsMono Nerd Font** → instalada em `~/.local/share/fonts` e ativada para o GNOME Terminal quando possível
+- `g:icaro_use_nerd_font = 1` → ícones NERDTree e separadores Powerline ligados desde a primeira abertura
+
+A instalação é repetível e não fica esperando você responder perguntas.
+
+## Créditozinho difícil de tirar
+
+Por pedido: o "Config: Ícaro Lira" agora é bem mais chato de remover do que apagar uma linha.
+
+- Em vez de string literal, a frase é remontada a partir de códigos de caractere numa função (`config/credit.vim`)
+- Aparece em três lugares ao mesmo tempo: statusline, winbar e topo do painel do NERDTree
+- Um "watchdog" reaplica tudo isso sozinho a cada evento normal do Vim (trocar de buffer, parar o cursor por um instante) — testei na unha: redefini a função pra retornar vazio, e ela voltou sozinha no evento seguinte; apaguei a seção da statusline inteira, e ela também voltou
+
+Não é uma trava de segurança de verdade (ninguém consegue fazer isso num arquivo de config local), mas não sai sem querer — precisa editar `config/credit.vim` de propósito e desligar o `augroup icaro_credit_watchdog` de lá.
+
+## Abertura direta
+
+Abrir `vim` agora entra direto no buffer, sem tela intermediária e sem precisar apertar ENTER para começar. Isso deixa o fluxo do laboratório mais rápido.
+
+## F3 corrigido: agora desliga de verdade as dicas dentro dos parênteses
+
+A primeira versão do `F3` só mexia numa configuração específica do `coc-java` (`java.inlayHints.parameterNames.enabled`). Só que aquele texto fantasma tipo `println(mensagem: "oi")` é controlado pelo interruptor **geral** do coc.nvim (`inlayHint.enable`), que vale pra qualquer linguagem com LSP — não só Java.
+
+Agora o `F3` usa os dois:
+- `inlayHint.enable` (0/1) — o interruptor geral, funciona pra Java, C++ (se você instalar um language server pra C++, tipo `coc-clangd`) ou qualquer outra linguagem
+- o comando nativo `document.toggleInlayHint`, que atualiza a tela na hora, sem precisar fechar e abrir o arquivo de novo
+- `java.inlayHints.parameterNames.enabled` continua sendo ajustado também, por garantia
+
+## Git na interface
+
+Duas adições novas, pra ficar mais parecido com uma IDE de verdade:
+
+- **`vim-fugitive`**: mostra o nome da branch atual (`master`, etc.) na statusline, dentro de um repositório git. Não precisa configurar nada — só estar num repo.
+- **`nerdtree-git-plugin`**: mostra o status do git (`M` modificado, `+` staged, `?` não rastreado, `*` sujo, `D` deletado) do lado do nome de cada arquivo dentro do NERDTree, cada um com uma cor diferente dentro da nossa paleta.
+- A statusline também ganhou contadores de erro/aviso do coc (`E:N`/`W:N`), perto do tipo do arquivo.
+
+## Paleta com mais variação
+
+Adicionamos um tom ciano (`#5fb3b3`) à paleta, usado em: nome de diretórios (no `Directory` e no NERDTree), sinalizadores de informação do coc, e a borda da janela flutuante de `hover`/documentação. Continua sendo uma paleta preto+vermelho no fundo — o ciano é só um tempero a mais pra diferenciar "tipo" (azul) de "informação" (ciano) visualmente, do jeito que uma IDE de verdade costuma fazer.
+
+---
+
+# 15. O teclado travando depois do F4 — causa raiz encontrada de vez
+
+Essa demorou mais pra encontrar. A explicação de "processo do coc pendurado" (seção anterior a esta, ainda válida e mantida) não era a causa principal — o teclado continuava travando mesmo depois de matar o processo do coc de verdade.
+
+A causa real: **`F4`, `F3` e `F1` não tinham nenhum mapeamento dentro do modo de inserção.** Se você aperta uma dessas teclas *enquanto está digitando* (sem apertar `Esc` antes — que é o jeito mais natural de usar um atalho desses), o Vim recebe a sequência de escape da tecla de função sem saber o que fazer com ela no insert mode, e isso podia jogar você pro modo normal **sem avisar**. Dali pra frente, Backspace e parênteses realmente não "escrevem" nada — porque em modo normal essas teclas fazem outra coisa (navegação, principalmente), não edição. Fechar e abrir o vim "resolvia" só porque você entrava no insert mode de novo, do zero, mascarando a causa real.
+
+**Correção:** `F1`, `F2`, `F3`, `F4`, `F9` (e também `F5`-`F8`, dentro de arquivos `.cpp`/`.java`) agora têm mapeamento também dentro do insert mode, usando `<C-o>`:
+
+```vim
+inoremap <silent> <F4> <C-o>:call ToggleAutocomplete()<CR>
+```
+
+`<C-o>` executa um único comando de modo normal e volta pro insert mode sozinho, automaticamente — é o jeito correto e padrão do Vim pra isso. Testamos digitando de verdade, apertando `F4` no meio da frase, sem tocar em `Esc` antes nem depois: o texto continuou entrando normalmente, parênteses e backspace incluídos.
+
+Se mesmo assim alguma tecla de função ainda se comportar de forma estranha no seu terminal específico, pode ser um conflito de sequência de escape do seu emulador de terminal com essa tecla — nesse caso, me avise qual tecla e qual terminal você usa.
+
+---
+
+# 16. Desligar/ligar autocomplete sem quebrar a edição
+
+O `F4` **não mata o processo RPC do coc.nvim**. Antes de desligar, ele apenas fecha qualquer popup aberto e ajusta `b:coc_suggest_disable` (opção nativa do coc.nvim, por buffer) na linguagem daquele buffer; ao religar, faz o oposto. Isso evita reiniciar o servidor LSP no meio da edição, reduz a chance de o estado do Insert Mode ficar inconsistente e — desde a seção 44 — permite que cada linguagem (C++/Java/Python) tenha seu próprio estado sem depender do `CocDisable`/`CocEnable` global, que desligaria todas de uma vez.
+
+Além disso, o `config/coc.vim` possui tratamento explícito para as teclas básicas de edição:
+
+```vim
+inoremap <silent><expr> <BS> CocBackspace()
+inoremap <silent><expr> <Esc> CocEscape()
+```
+
+`CocBackspace()` só fecha o popup, se houver um, e depois devolve o `Backspace` para o Vim. Assim, com ou sem autocomplete, `Backspace`, parênteses, chaves e colchetes continuam sendo edição normal.
+
+---
+
+# 17. Novidades: temas, atalho pra dicas inline, backspace inteligente
+
+## F1 / Shift+F1 — catálogo de temas
+
+`F1` avança para o próximo tema e `Shift+F1` volta para o anterior. O popup mostra a **sigla + nome** e a descrição. A escolha continua persistindo entre sessões.
+
+| # | Tema | Descrição |
+|---|---|---|
+| 1 | **Maria Isabel** | Pensão de Pet |
+| 2 | **Jales** | Pensão de Pet |
+| 3 | **Camelo** | Pensão de Pet |
+| 4 | **Iogurte** | Antiresenha+ |
+| 5 | **Malvadão** | Pensão de Pet |
+| 6 | **Mateus São Paulino** | Pensão de Pet |
+| 7 | **Pedro de...** | Pensão de Pet, cor : Clara |
+| 8 | **Belchior** | Pensão de Pet |
+| 9 | **Lucas Ribeiro?** | Pensão de Pet |
+| 10 | **Alan Turing** | Pensão de Pet |
+| 11 | **Alan Turing** | Antiresenha |
+| 12 | **Henrique** | Pensão de Pet |
+| 13 | **Of(f) Light** | Pensão de Pet |
+| 14 | **Geraldo** | Pensão de Pet |
+| 15 | **Cabeludo** | Antiresenha |
+| 16 | **Cookie** | Antiresenha |
+| 17 | **Ruiva** | Antiresenha |
+| 18 | **Baiana** | Antiresenha |
+| 19 | **Do Mal** | Antagonista |
+| 20 | **Sofia** | Antiresenha |
+| 21 | **Guerra** | Antiresenha+ |
+| 22 | **Soares** | Pensão de Pet+ |
+| 23 | **Biscoitinho** | Antagonista |
+| 24 | **GVSL** | Antagonista |
+| 25 | **JF** | GOATS |
+| 26 | **ToyMan** | Antagonista |
+| 27 | **Massoni** | GOATS |
+| 28 | **Dijkstra** | Como é que se escreve Dijkstra? |
+| 29 | **Ever Dream This Man?** |  |
+| 30 | **Raul** |  |
+| 31 | **ACESSO NEGADO** |  |
+
+Cada tema possui seu próprio colorscheme e tema do Airline, então a aparência da interface acompanha a troca de tema.
+
+Para editar as cores, use `:ThemeEdit` dentro do Vim ou edite `theme/icaro-theme/colors/<id>.vim` no projeto.
+
+## Indicador `IH` na statusline
+
+Igual o `[AC:ON]`/`[AC:OFF]`, agora tem um `[IH:ON]`/`[IH:OFF]` do lado, mostrando o estado das dicas de parâmetro inline (o `F3`).
+
+## Separadores em formato de seta
+
+Sem Nerd Font, a statusline agora usa `>` e `<` como separadores entre as seções (em vez da barrinha `│` ou nada) — funciona em qualquer fonte, sem depender de ícone nenhum.
+
+## Backspace inteligente: `Shift+Backspace` apaga o par inteiro
+
+Se o cursor estiver bem entre um par vazio — `()`, `[]`, `{}`, `""`, `''` ou `` `` `` — apertar `Shift+Backspace` (ou `Ctrl+Backspace`, dependendo do que seu terminal enviar) apaga os dois de uma vez, em vez de só um. Fora dessa situação exata, funciona como um Backspace normal.
+
+**Aviso honesto:** `Shift+Backspace` é uma combinação que nem todo terminal envia de um jeito que o Vim consegue distinguir de um Backspace comum — isso depende do seu terminal/emulador, não é algo que a configuração controle sozinha. Por isso mapeamos também o `Ctrl+Backspace` pro mesmo comportamento, como alternativa mais confiável. Se nenhum dos dois funcionar no seu terminal, me avise.
+
+---
+
+
+# 17.1 Sistema novo de temas: anterior, header, rodapé e criação rápida
+
+O sistema de temas agora ficou pensado para uso diário, sem precisar ficar procurando qual arquivo editar.
+
+## Troca rápida
+
+```text
+F1        próximo tema
+Shift+F1  tema anterior
+```
+
+Os dois funcionam no modo normal e também enquanto você está digitando (Insert Mode).
+
+O popup mostra a **sigla + nome** do tema e a descrição dele.
+
+## Tema visível no header e no rodapé
+
+A interface agora mostra informações no estilo da referência enviada:
+
+```text
+INSERT › git:master › [MAL] Malvadão › contest/a.cpp              23% ‹ 22:26 ‹ Config: Ícaro Lira
+```
+
+O cabeçalho (`winbar`) também mostra:
+
+```text
+INSERT › [MAL] Malvadão › a.cpp                         git:master ‹ Config: Ícaro Lira
+```
+
+Além do tema, continuam aparecendo os detalhes úteis da IDE: modo atual, branch Git, arquivo, modificações, erros/avisos do coc, tipo do arquivo, posição do cursor, porcentagem e relógio.
+
+## Criar um tema sem mexer na lista principal
+
+Dentro do Vim:
+
+```vim
+:ThemeNew
+```
+
+Ele pergunta somente:
+
+```text
+Nome do novo tema:
+ID/arquivo:
+Sigla do header:
+Subtítulo/descrição:
+```
+
+Depois ele **copia o tema atual** e já abre o arquivo de cores para você editar.
+
+Os temas pessoais ficam separados dos temas oficiais:
+
+```text
+~/.vim/config/themes.local.vim
+~/.vim/themes/colors/
+~/.vim/themes/autoload/airline/themes/
+```
+
+Isso significa que atualizar/reinstalar o projeto não precisa apagar seus temas pessoais.
+
+## Editar um tema já existente
+
+```vim
+:ThemeEdit
+```
+
+Abre diretamente o arquivo de cores do tema atualmente selecionado.
+
+Para alterar rapidamente **nome, sigla ou descrição** dos seus temas pessoais:
+
+```vim
+:ThemeMeta
+```
+
+Para ver todos os temas:
+
+```vim
+:ThemeList
+```
+
+E para apenas mostrar novamente a identificação do tema atual:
+
+```vim
+:ThemeInfo
+```
+
+### Resumo
+
+| Comando | Função |
+|---|---|
+| `F1` | Próximo tema |
+| `Shift+F1` | Tema anterior |
+| `:ThemeList` | Lista completa |
+| `:ThemeNew` | Cria um tema copiando o atual |
+| `:ThemeEdit` | Edita as cores do tema atual |
+| `:ThemeMeta` | Edita nome/sigla/descrição dos temas pessoais |
+| `:ThemeInfo` | Mostra nome/sigla do tema atual |
+
+### Onde editar as cores
+
+Os temas oficiais continuam em:
+
+```text
+theme/icaro-theme/colors/<id>.vim
+```
+
+Os temas criados pelo usuário ficam em:
+
+```text
+~/.vim/themes/colors/<id>.vim
+```
+
+A parte importante é que agora **nome, sigla e descrição não ficam misturados no arquivo de cores**. O catálogo controla a identidade do tema, enquanto o colorscheme controla somente a aparência. Isso deixa muito mais rápido trocar uma cor sem precisar entender o sistema inteiro de temas.
+
+# 18. Buffers
+
+No Vim, um arquivo aberto é um buffer.
+
+Você pode abrir vários:
+
+```vim
+:e A.cpp
+:e B.cpp
+:e C.cpp
+```
+
+Trocar:
+
+```text
+Tab
+```
+
+ou:
+
+```text
+Shift+Tab
+```
+
+Também existem os comandos:
+
+```vim
+:bnext
+:bprevious
+```
+
+Listar buffers:
+
+```vim
+:buffers
+```
+
+Ir diretamente para um buffer:
+
+```vim
+:buffer 2
+```
+
+---
+
+# 19. Janelas
+
+Dividir horizontalmente:
+
+```vim
+:split
+```
+
+Dividir verticalmente:
+
+```vim
+:vsplit
+```
+
+Ou:
+
+```text
+Ctrl+W S
+Ctrl+W V
+```
+
+Depois navegue usando:
+
+```text
+Ctrl+H
+Ctrl+J
+Ctrl+K
+Ctrl+L
+```
+
+Isso é especialmente útil para deixar o código de um lado e outro arquivo/terminal do outro.
+
+---
+
+# 20. Comandos básicos do Vim
+
+## Abrir arquivo
+
+```bash
+vim arquivo.cpp
+```
+
+---
+
+## Abrir vários arquivos
+
+```bash
+vim A.cpp B.cpp C.cpp
+```
+
+---
+
+## Salvar
+
+```vim
+:w
+```
+
+---
+
+## Salvar e sair
+
+```vim
+:wq
+```
+
+ou:
+
+```vim
+:x
+```
+
+---
+
+## Sair sem salvar
+
+```vim
+:q!
+```
+
+---
+
+## Fechar
+
+```vim
+:q
+```
+
+---
+
+## Salvar todos
+
+```vim
+:wa
+```
+
+---
+
+# 21. Modos do Vim
+
+O Vim possui principalmente:
+
+```text
+NORMAL
+INSERT
+VISUAL
+COMMAND
+```
+
+### Normal
+
+É o modo padrão.
+
+Use:
+
+```text
+Esc
+```
+
+para voltar.
+
+---
+
+### Insert
+
+Para escrever:
+
+```text
+i
+```
+
+Outros atalhos:
+
+```text
+a
+o
+O
+I
+A
+```
+
+---
+
+### Visual
+
+Seleção de texto:
+
+```text
+v
+```
+
+Linha inteira:
+
+```text
+V
+```
+
+Bloco:
+
+```text
+Ctrl+V
+```
+
+---
+
+### Command
+
+Pressione:
+
+```text
+:
+```
+
+Exemplos:
+
+```vim
+:w
+:q
+:wq
+:set number
+:colorscheme icaro
+```
+
+---
+
+# 22. Navegação rápida
+
+No modo normal:
+
+```text
+h  esquerda
+j  baixo
+k  cima
+l  direita
+```
+
+Movimentos importantes:
+
+```text
+w  próxima palavra
+b  palavra anterior
+e  fim da palavra
+0  começo da linha
+$  fim da linha
+gg início do arquivo
+G  fim do arquivo
+```
+
+Ir para uma linha:
+
+```vim
+:100
+```
+
+ou:
+
+```text
+100G
+```
+
+---
+
+# 23. Edição rápida
+
+```text
+dd      apagar linha
+yy      copiar linha
+p       colar
+u       desfazer
+Ctrl+r  refazer
+x       apagar caractere
+ciw     mudar palavra
+diw     apagar palavra
+dw      apagar até próxima palavra
+D       apagar até fim da linha
+C       mudar até fim da linha
+```
+
+Alguns comandos extremamente úteis:
+
+```text
+ci"
+```
+
+muda o conteúdo dentro de aspas.
+
+```text
+ci(
+```
+
+muda o conteúdo dentro de parênteses.
+
+```text
+di{
+```
+
+apaga o conteúdo dentro de `{}`.
+
+---
+
+# 24. Visual + indentação
+
+Selecione linhas:
+
+```text
+V
+```
+
+Depois:
+
+```text
+>
+```
+
+para indentar.
+
+Ou:
+
+```text
+<
+```
+
+para remover indentação.
+
+No Vim, você também pode selecionar e usar:
+
+```text
+=
+```
+
+para reindentar automaticamente.
+
+Exemplo:
+
+```text
+gg=G
+```
+
+formata/reindenta o arquivo inteiro segundo as regras do Vim.
+
+---
+
+# 25. Pesquisa
+
+Pesquisar:
+
+```text
+/abc
+```
+
+Próximo:
+
+```text
+n
+```
+
+Anterior:
+
+```text
+N
+```
+
+Pesquisa reversa:
+
+```text
+?abc
+```
+
+Depois de pesquisar, o Vim deixa os resultados destacados.
+
+Para limpar:
+
+```text
+Esc
+```
+
+ou:
+
+```vim
+:nohlsearch
+```
+
+---
+
+# 26. Substituição
+
+Substituir na linha atual:
+
+```vim
+:s/old/new/
+```
+
+No arquivo inteiro:
+
+```vim
+:%s/old/new/g
+```
+
+Perguntando antes:
+
+```vim
+:%s/old/new/gc
+```
+
+---
+
+# 27. Configuração do editor
+
+A configuração principal está em:
+
+```text
+~/.vimrc
+```
+
+As partes foram separadas:
+
+```text
+~/.vim/config/
+├── appearance.vim
+├── coc.vim
+├── cpp.vim
+├── java.vim
+├── explorer.vim
+├── keymaps.vim
+└── search.vim
+```
+
+Isso facilita modificar o Vim sem transformar o `.vimrc` em um arquivo gigante.
+
+---
+
+# 28. Configurações importantes
+
+## Números de linha
+
+```vim
+set number
+set relativenumber
+```
+
+O número da linha atual aparece normalmente e as demais aparecem relativamente.
+
+Isso ajuda bastante para comandos como:
+
+```text
+5j
+10k
+```
+
+---
+
+## Tab como 4 espaços
+
+```vim
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+```
+
+---
+
+## Busca inteligente
+
+```vim
+set ignorecase
+set smartcase
+set incsearch
+set hlsearch
+```
+
+Assim:
+
+```text
+abc
+```
+
+ignora maiúsculas/minúsculas.
+
+Mas:
+
+```text
+ABC
+```
+
+passa a diferenciar maiúsculas/minúsculas.
+
+---
+
+## Cursor
+
+```vim
+set cursorline
+```
+
+destaca a linha atual.
+
+---
+
+## Scroll
+
+```vim
+set scrolloff=5
+```
+
+mantém algumas linhas ao redor do cursor durante a rolagem.
+
+---
+
+# 29. Segurança e arquivos temporários
+
+A configuração usa:
+
+```vim
+set nobackup
+set noswapfile
+set nowritebackup
+```
+
+Isso evita a criação dos arquivos temporários tradicionais do Vim.
+
+**Observação:** isso é conveniente para um ambiente de competição, mas significa que você abre mão de parte da recuperação automática que os swapfiles oferecem.
+
+---
+
+# 30. Por que usar C++17?
+
+A configuração compila com:
+
+```bash
+-std=c++17
+```
+
+Isso permite usar recursos modernos e bibliotecas comuns em programação competitiva.
+
+Exemplo:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    vector<int> v = {1, 2, 3};
+
+    for (int x : v)
+        cout << x << '\n';
+}
+```
+
+---
+
+# 31. Flags do compilador
+
+O comando padrão é:
+
+```bash
+g++ -std=c++17 -O2 -Wall -Wextra
+```
+
+### `-std=c++17`
+
+Usa C++17.
+
+### `-O2`
+
+Ativa otimizações adequadas para competição.
+
+### `-Wall`
+
+Ativa vários warnings.
+
+### `-Wextra`
+
+Ativa warnings adicionais.
+
+Esses warnings ajudam a encontrar erros que poderiam virar WA ou comportamento inesperado.
+
+---
+
+# 32. Como restaurar seu Vim antigo
+
+O instalador cria um backup antes de substituir:
+
+```text
+~/.vimrc
+```
+
+O arquivo fica parecido com:
+
+```text
+~/.vimrc.backup.20260909_021500
+```
+
+Para restaurar:
+
+```bash
+cp ~/.vimrc.backup.DATA ~/.vimrc
+```
+
+Substitua `DATA` pelo nome real do backup.
+
+---
+
+# 33. Desinstalar a configuração
+
+Para remover a configuração:
+
+```bash
+rm -f ~/.vimrc
+rm -rf ~/.vim/config
+rm -rf ~/.vim/templates
+rm -f ~/.vim/coc-settings.json
+rm -f ~/.vim/.icaro_autocomplete_state
+rm -f ~/.vim/.icaro_inlayhints_state
+```
+
+Para remover os plugins instalados por este projeto:
+
+```bash
+rm -rf ~/.vim/pack/plugins/opt/icaro-theme
+rm -rf ~/.vim/pack/plugins/opt/vim-airline
+rm -rf ~/.vim/pack/plugins/opt/vim-airline-themes
+rm -rf ~/.vim/pack/plugins/opt/nerdtree
+rm -rf ~/.vim/pack/plugins/opt/nerdtree-git-plugin
+rm -rf ~/.vim/pack/plugins/opt/vim-fugitive
+rm -rf ~/.vim/pack/plugins/opt/vim-devicons
+rm -rf ~/.vim/pack/plugins/opt/coc.nvim
+```
+
+Para remover a extensão `coc-java` (e outras extensões do coc):
+
+```bash
+rm -rf ~/.config/coc
+```
+
+Se você tiver um `.vimrc` antigo, restaure o backup.
+
+---
+
+# 34. Levar para outro computador
+
+Esse é um dos objetivos principais deste projeto.
+
+No computador de destino:
+
+```bash
+git clone <SEU_REPOSITORIO>
+cd vim-codeforces-ide
+chmod +x install.sh
+./install.sh
+```
+
+Depois:
+
+```bash
+vim
+```
+
+Tudo será reconstruído:
+
+```text
+Tema
+Configuração
+Template
+Atalhos
+Airline
+Explorer
+Workflow C++
+```
+
+---
+
+# 35. Instalação no PC do LCC
+
+O roteiro atual é pensado para o laboratório: não há perguntas de Nerd Font,
+e a instalação tenta deixar a interface completa pronta automaticamente.
+A JetBrainsMono Nerd Font é instalada no espaço do usuário, sem sudo, e o
+GNOME Terminal é configurado automaticamente quando o ambiente permitir.
+
+
+Exemplo completo:
+
+```bash
+git clone <SEU_REPOSITORIO>
+cd vim-codeforces-ide
+chmod +x install.sh
+./install.sh
+```
+
+Se aparecer:
+
+```text
+g++ não encontrado
+```
+
+instale o compilador de acordo com a distribuição Linux.
+
+Ubuntu/Debian:
+
+```bash
+sudo apt update
+sudo apt install g++
+```
+
+Depois:
+
+```bash
+g++ --version
+```
+
+E finalmente:
+
+```bash
+vim
+```
+
+---
+
+# 36. Compilar/executar não trava mais o teclado (nem joga texto colado no código)
+
+Encontramos e corrigimos uma causa raiz séria: `F5`-`F8` usavam `:!comando` — que **trava** a entrada do Vim até o comando externo terminar. Se você colasse um bloco de código grande e desse `F7` logo em seguida, o que ainda estivesse "na fila" do terminal só chegava no Vim depois que o `:!` devolvia o controle — e nesse momento virava uma sequência de comandos de modo normal, jogando pedaços de texto colado no meio do código sem você querer.
+
+**Correção:** `F5`-`F8` agora abrem um painel de terminal de verdade (`:terminal`), embaixo da tela, rodando o comando **de forma assíncrona**. O Vim nunca fica bloqueado esperando — você pode continuar digitando no arquivo (numa outra janela) enquanto compila, e não existe mais aquela janela de tempo onde texto colado pode vazar pro buffer errado.
+
+Testamos o cenário exato do bug: colar (digitar rápido) um trecho com erro de sintaxe e apertar `F7` quase que imediatamente depois. Resultado: o painel de saída mostra os erros do compilador limpinhos, e o código no buffer permanece exatamente como foi digitado — nada vazou pro meio dele.
+
+Detalhes:
+- O painel de saída reaproveita a mesma janela a cada `F5`-`F8` (não fica empilhando terminal por cima de terminal)
+- Ao terminar (com sucesso ou erro), o terminal fica aberto mostrando a saída completa — veja a seção 44.1 para os detalhes atuais de como fechar/rolar
+- O foco fica no painel enquanto o programa roda, e o Vim continua responsivo
+
+---
+
+# 37. Folha de atalhos (F12) — aparece enquanto você segura a tecla
+
+Segure `F12` pra ver um resumo com todos os atalhos desta configuração, mais os comandos básicos do Vim e do NERDTree — solte a tecla e o popup some sozinho.
+
+O Vim, rodando dentro de um terminal, não tem como saber de verdade se uma tecla está "pressionada e segurando" ou não — terminais simplesmente não mandam esse tipo de evento pra nenhum programa, é uma limitação de como terminais funcionam, não do Vim. O jeito de simular isso: enquanto você segura uma tecla, o sistema operacional manda ela repetida várias vezes seguidas (a "repetição automática" do teclado); quando você solta, essa repetição para. O `F12` fica de olho nisso — enquanto continuar chegando `F12` repetido, mantém o popup aberto; assim que passar um tempinho sem receber outro, considera que você soltou e fecha.
+
+Isso é uma aproximação (não é uma detecção de "tecla solta" de verdade), e depende da taxa de repetição configurada no seu sistema operacional. Testamos com sucesso simulando o segurar/soltar de verdade. Se no seu computador o popup fechar cedo demais (antes de você soltar de fato) ou demorar demais pra sumir depois que solta, dá pra ajustar isso editando uma linha em `~/.vim/config/cheatsheet.vim`:
+
+```vim
+let g:icaro_cheatsheet_release_ms = 500
+```
+
+Aumente esse número se estiver fechando cedo demais; diminua se estiver demorando demais pra fechar.
+
+---
+
+# 38. Ajustes nos temas: Belchior x Pedro, Geraldo mais pastel, Alan Turing mais arco-íris
+
+- **Belchior** continua branco + azul. **Pedro de...** agora é branco + **cinza** (sem nenhum azul), pra não ficar parecido com o Belchior.
+- **Geraldo** ficou bem mais pastel: fundo quase branco com um leve tom rosado, e os acentos em rosa mais suave (bem mais "hello kitty claro" do que o rosa vibrante de antes).
+- **Alan Turing** ficou mais arco-íris ainda: além da sintaxe já espalhada pelas cores, agora cada **modo do Vim** (normal, insert, visual, replace) pinta a statusline numa cor bem diferente — trocar de modo já é visualmente "arco-íris" sozinho.
+
+---
+
+# 39. Setas do rodapé no formato da referência
+
+Trocamos os separadores simples (`>`/`<`) por `›`/`‹` — aspas angulares finas, visual mais parecido com o que você mandou de referência. São caracteres Unicode comuns (não são exclusivos de Nerd Font), mas se ainda assim aparecerem estranhos no seu terminal, dá pra voltar pro `>`/`<` puro-ASCII editando duas linhas em `~/.vim/config/appearance.vim` (tem um comentário lá mostrando exatamente onde).
+
+---
+
+
+
+Depois da instalação:
+
+```bash
+mkdir -p ~/teste-vim
+cd ~/teste-vim
+vim main.cpp
+```
+
+O template deve aparecer.
+
+Depois pressione:
+
+```text
+F5
+```
+
+para compilar.
+
+Depois:
+
+```text
+F7
+```
+
+para compilar e executar.
+
+Para testar entrada:
+
+```bash
+touch input.txt
+```
+
+Edite o arquivo:
+
+```bash
+vim input.txt
+```
+
+Coloque uma entrada e volte para:
+
+```text
+main.cpp
+```
+
+Pressione:
+
+```text
+F8
+```
+
+Se tudo funcionar, o ambiente está pronto para Codeforces.
+
+---
+
+# 40. Resumo rápido
+
+```text
+┌───────────────────────────────────────────┐
+│     VIM CODEFORCES / JAVA IDE             │
+│     Configuração Ícaro Lira               │
+├───────────────────────────────────────────┤
+│ F1       Próximo tema                     │
+│ F2       Explorer (NERDTree)              │
+│ F3       Liga/desliga dicas de parâmetro  │
+│ F4       Liga/desliga autocomplete        │
+│ F5       Compilar                         │
+│ F6       Executar                         │
+│ F7       Compilar + Executar              │
+│ F8       Testar input.txt                 │
+│ F9       Terminal                         │
+│ F12      Folha de atalhos                 │
+│ S-F1     Tema anterior                    │
+│ Ctrl+S   Salvar                           │
+│ Ctrl+H   Janela esquerda                  │
+│ Ctrl+J   Janela abaixo                    │
+│ Ctrl+K   Janela acima                     │
+│ Ctrl+L   Janela direita                   │
+│ Tab      Próximo buffer                   │
+│ S-Tab    Buffer anterior                  │
+│ Esc      Limpar busca                     │
+├───────────────────────────────────────────┤
+│ Templates automáticos: .cpp e .java       │
+│ C++17 + O2 + Wall + Wextra                │
+│ Autocomplete via coc.nvim + coc-java      │
+│ Tema preto + vermelho (icaro)              │
+│ NERDTree (+ ícones, se tiver Nerd Font)   │
+│ F3/F4 persistentes                        │
+│ Terminal                                  │
+└───────────────────────────────────────────┘
+```
+
+---
+
+# 41. Ideia do workflow
+
+A intenção é que, durante uma competição, você consiga fazer:
+
+```text
+Terminal
+   │
+   ├── criar pasta
+   │
+   ▼
+vim A.cpp
+   │
+   ├── template automático
+   │
+   ▼
+escrever solução
+   │
+   ▼
+F7
+   │
+   ├── compila
+   │
+   └── executa
+   │
+   ▼
+input.txt
+   │
+   ▼
+F8
+   │
+   ▼
+testar exemplos
+   │
+   ▼
+submeter no Codeforces
+```
+
+O objetivo é deixar o máximo possível do processo de competição dentro do Vim.
+
+---
+
+# 42. Próximas extensões possíveis
+
+O projeto foi estruturado para receber mais ferramentas futuramente.
+
+Possíveis extensões:
+
+- `fzf` para busca de arquivos
+- `vim-fugitive` para Git
+- integração com testes múltiplos
+- comparação automática `output.txt`
+- gerador de arquivos A/B/C/D/E
+- comando para criar uma pasta de contest
+- templates automáticos e `F5`/`F6`/`F8` (compilar / rodar sem salvar de novo / testar com `input.txt`) para Python — hoje só `F7` (salvar + executar) existe pra Python, veja seção 44
+- execução com casos de teste múltiplos
+- timer de competição
+- integração com Codeforces
+- download automático de problemas
+- submissão pelo terminal
+- suporte a C++20/C++23
+- snippets de algoritmos
+- biblioteca pessoal de templates
+- comandos para debug
+- perfil específico para OBI/ICPC/Codeforces
+
+---
+
+# 43. Filosofia da configuração
+
+A configuração não tenta transformar o Vim em uma cópia do VS Code.
+
+A proposta é manter a principal vantagem do Vim:
+
+```text
+teclado
++
+velocidade
++
+atalhos
++
+terminal
++
+editor
+```
+
+e adicionar somente o que realmente ajuda em programação competitiva.
+
+O resultado é um ambiente pequeno, rápido e portátil que pode ser reproduzido em qualquer máquina Linux com:
+
+```text
+Vim
+Git
+g++
+JDK (para Java)
+Python 3 (para o coc-pyright)
+Node.js (para o autocomplete)
+```
+
+---
+
+# 44. Autocomplete por linguagem: Python entrou, e o `F4` virou individual (C++/Java/Python)
+
+## Python agora tem autocomplete "de verdade"
+
+Até aqui só Java tinha uma extensão de LSP instalada automaticamente (`coc-java`). C++ e Python dependiam de o usuário instalar um language server por conta própria. Agora as três linguagens são tratadas do mesmo jeito:
+
+```vim
+let g:coc_global_extensions = ['coc-java', 'coc-clangd', 'coc-pyright']
+```
+
+- **Java** → `coc-java` (Eclipse JDT Language Server)
+- **C++** → `coc-clangd` (clangd)
+- **Python** → `coc-pyright` (Pyright)
+
+As três são instaladas sozinhas na primeira vez que o vim abre (e também pré-instaladas pelo `install.sh`, igual já acontecia só com Java antes). `.py` já é reconhecido nativamente pelo Vim como `filetype=python`, sem precisar de nenhum arquivo `config/python.vim` só para isso funcionar.
+
+Não foram adicionados, porque não foram pedidos: template automático de `.py`, nem atalhos `F5`/`F6`/`F8` de compilar/executar Python (isso ainda é só C++/Java). Se quiser isso também, é só pedir.
+
+**Atualização:** `F7` (salvar + executar) já existe pra Python agora — veja a seção 44.1 logo abaixo.
+
+## `F4` deixou de ser um interruptor único — agora é individual por linguagem
+
+**Antes:** `F4` ligava/desligava o autocomplete inteiro, pro coc.nvim como um todo, não importava em que arquivo você estivesse — e usava `CocDisable`/`CocEnable`, que derruba o processo do coc pra todas as linguagens de uma vez.
+
+**Agora:** `F4` só mexe na linguagem do buffer onde você apertou. Cada linguagem (C++, Java, Python) guarda seu próprio estado, então dá pra ter, por exemplo:
+
+```text
+C++    → desligado
+Java   → ligado
+Python → ligado
+```
+
+ao mesmo tempo, sem que ligar/desligar uma afete as outras.
+
+**Como funciona por baixo dos panos:**
+
+- `g:icaro_ac_languages = ['cpp', 'java', 'python']` (`~/.vimrc`) — a lista de linguagens com toggle individual (usa o mesmo nome do `filetype` do Vim pra cada uma)
+- `g:icaro_ac_state` — um dicionário tipo `{'cpp': 1, 'java': 0, 'python': 1}`, lido de `~/.vim/.icaro_autocomplete_state` (uma linha por linguagem, tipo `cpp 1`) bem no topo do `~/.vimrc`, antes de qualquer plugin carregar
+- `IcaroAutocompleteEnabled()` (`config/coc.vim`) — olha o `filetype` do buffer atual e devolve o estado daquela linguagem; é o que os mapeamentos de `Tab`, `Shift+Tab`, `Enter` e `Ctrl+Space` checam agora, no lugar da antiga `g:my_autocomplete_enabled` global
+- Em vez de `CocDisable`/`CocEnable` (que afetam o coc inteiro), o toggle usa `b:coc_suggest_disable` — uma opção nativa do coc.nvim, **por buffer** — pra ligar/desligar só o popup de sugestão daquela linguagem, sem mexer em diagnóstico, `gd`/`gr`/`K`/renomear, que continuam funcionando em todas as linguagens, ligadas ou não
+- Ao apertar `F4`, o novo estado é aplicado na hora em **todos os buffers já abertos** daquela linguagem (não só no atual), e também é gravado de volta no arquivo `~/.vim/.icaro_autocomplete_state`
+- Ao abrir/trocar de buffer, um `autocmd` (`FileType`/`BufEnter`) reaplica o estado salvo daquela linguagem automaticamente
+
+**Statusline:** `AutocompleteStatus()` agora mostra o estado da linguagem do arquivo atual — `[AC:ON]`/`[AC:OFF]` dentro de `.cpp`/`.java`/`.py`, e `[AC:--]` em qualquer outro tipo de arquivo (onde `F4` não se aplica, e o coc continua livre pra sugerir normalmente, como sempre foi).
+
+Testado desligando C++ com Java/Python ligados (e todas as combinações): cada linguagem manteve exatamente o estado esperado, inclusive depois de fechar e abrir o vim de novo.
+
+---
+
+# 44.1 `F7` fechava sozinho antes de dar pra ver a saída, e Python ainda não tinha nenhum atalho
+
+## O terminal do F5-F8 estava fechando cedo demais
+
+`IcaroRunInTerminal()` (`config/runner.vim`, usada por `F5`-`F8`) tinha `'term_finish': 'close'`, que fecha a janela **assim que o comando termina** — compilou com erro, ou rodou certinho até o fim, tanto faz: a janela sumia na hora, sem dar tempo de ler nada.
+
+**Correção:** tiramos o `term_finish: 'close'`. Agora, quando o comando termina, a janela fica aberta mostrando a saída inteira (mais uma linha `[Codigo de saida: N]` no final) — ela só some quando você mandar (`q`, veja abaixo) ou quando você aperta `F5`-`F8` de novo (aí sim o painel anterior é reaproveitado/fechado pra não empilhar).
+
+## Scroll dentro do terminal (F5-F8), pra ver a execução inteira
+
+Um terminal do Vim começa em "Terminal-Job mode": as teclas (inclusive setas, `Ctrl-U`, `Ctrl-D`) vão direto pro processo rodando, não pro Vim — então, se a entrada que você colou ou a saída do programa for maior que as 14 linhas da janela, não tinha como rolar pra cima e rever o que passou.
+
+Agora **`Esc`**, dentro dessa janela (a qualquer momento — rodando ou já terminado), entra em "Terminal-Normal mode" (o modo normal do Vim de verdade): dá pra usar setas, `j`/`k`, `Ctrl-U`/`Ctrl-D`, `gg` (vai pro início da execução) e `G` (vai pro fim) pra rolar livremente e ver a execução completa, do jeito que rolaria em qualquer buffer normal. `i` (ou `a`) volta pro modo de terminal, caso o programa ainda esteja esperando você digitar algo. Uma vez em Terminal-Normal mode, `q` fecha a janela.
+
+Testado com uma saída de 40 linhas maior que a janela: `Esc` + `gg` foi direto pro topo da execução; `G` voltou pro final; `q` fechou a janela.
+
+(Também testamos um jeito de pular automaticamente pro topo assim que o processo termina, sem precisar apertar `Esc` — mas esse mecanismo se mostrou instável em alguns cenários durante os testes, então preferimos manter o jeito manual, que é confiável.)
+
+## Python ganhou `F7` — salva, abre o terminal e executa
+
+Novo arquivo `config/python.vim`: dentro de um `.py`, `F7` salva o arquivo e executa com `python3` (cai pra `python` se `python3` não existir no PATH), no mesmo terminal com scroll da seção acima. Python é interpretado, então não tem etapa de compilação separada — por isso só `F7` existe aqui, sem `F5`/`F6`/`F8` (que continuam sendo só C++/Java).
+
+---
+
+# 45. PA — fechamento automático de parênteses/aspas e popup de assinatura, separado do autocomplete (`F10`)
+
+## O problema: parece autocomplete, mas não é
+
+Mesmo com o autocomplete desligado (`F4` → `[AC:OFF]`), dois comportamentos continuavam acontecendo:
+
+- Digitar `(`, `[`, `{`, `<`, `"` ou `'` fechava o par sozinho (`(` virava `()`, com o cursor no meio)
+- Um popup de "ajuda de assinatura" (os parâmetros da função, tipo `foo(int a, int b)`) aparecia sozinho ao digitar `(`
+
+Isso acontece porque são dois recursos **completamente separados** do `b:coc_suggest_disable` que o `F4` controla:
+
+- O fechamento automático de pares vem da extensão `coc-pairs` do coc.nvim (uma extensão independente — se ela estiver instalada no seu `~/.vim`, esse comportamento roda por fora do nosso mapeamento de teclas)
+- O popup de assinatura é a configuração `signature.enable` do próprio coc.nvim (`true` por padrão), também independente da extensão de sugestão/completion
+
+Ou seja: tecnicamente nunca foi "o AC" — só parecia, porque os dois normalmente andam juntos.
+
+## A solução: `F10`, um toggle próprio (PA)
+
+Criamos **PA** (Pareamento Automático), um terceiro toggle, do mesmo jeito que `F4` (AC) e `F3` (IH):
+
+- `F10` liga/desliga os dois comportamentos juntos (fechamento de pares + popup de assinatura)
+- Indicador na statusline: `[PA:ON]` / `[PA:OFF]`, ao lado de `[AC:...]` e `[IH:...]`
+- Persistente: salvo em `~/.vim/.icaro_pairs_state`, volta do jeito que você deixou depois de fechar e abrir o vim de novo
+- **Diferente do `F4`, o `F10` é único pra todas as linguagens** (não é por linguagem como o autocomplete) — igual ao `F3`. Se quiser que vire por linguagem também (por exemplo, fechamento de pares ligado só em Python), é só pedir.
+
+Como funciona por baixo dos panos (`config/coc.vim`):
+
+- `b:coc_pairs_disabled` (opção nativa da extensão `coc-pairs`, por buffer) recebe a lista de todos os caracteres pareáveis (`pairs.enableCharacters` padrão: `( [ { < ' " ` 【「《『`) quando `PA` está desligado, e uma lista vazia quando está ligado — aplicado a todos os buffers já abertos na hora do toggle, e a qualquer buffer novo via `autocmd FileType`/`BufEnter`
+- `signature.enable` é atualizado em tempo real via `CocAction('updateConfig', 'signature.enable', ...)`, sem precisar reiniciar o coc.nvim
+- Se a extensão `coc-pairs` não estiver instalada, `b:coc_pairs_disabled` simplesmente não tem efeito nenhum (não dá erro) — só o popup de assinatura seria afetado nesse caso
+
+Testado ligando/desligando várias vezes seguidas, em C++/Java/Python, e reabrindo o vim depois de desligar: o estado (e a lista de caracteres desabilitados em cada buffer) ficou exatamente como esperado em todos os casos, sem interferir no `F4`/`F3`.
+
+---
+
+# 46. `Shift+F10` (highlight de parênteses) e `Shift+F12` (esconder o header)
+
+Dois toggles novos, simples e persistentes (cada um no seu próprio arquivinho em `~/.vim/`, lido de volta bem cedo no `~/.vimrc`, igual todo o resto):
+
+## `Shift+F10` — highlight do par correspondente
+
+Quando o cursor está em cima de (ou logo depois de) um `(`, `[`, `{` — ou do fechamento correspondente — o Vim destaca os dois automaticamente. Isso é o plugin nativo `matchparen` (`:h matchparen`), carregado sozinho pelo `filetype plugin indent on`; não tem relação nenhuma com o `PA`/`F10` (que é sobre *fechar* pares ao digitar, não sobre *destacar* pares existentes).
+
+`Shift+F10` chama `:NoMatchParen`/`:DoMatchParen` (comandos do próprio plugin) e guarda o estado em `~/.vim/.icaro_matchparen_state`.
+
+## `Shift+F12` — esconder o header (winbar)
+
+O header é o conjunto de barras no topo: a `tabline` do vim-airline (a barra com `jales.cpp`/`buffers` da captura) e a `winbar` do Vim. `Shift+F12` esconde/mostra as duas. Em terminais que enviam `Shift+F12` como `F24`, o mesmo toggle também está mapeado em `F24`.
+
+**Detalhe importante:** o crédito no header tem um "watchdog" (`config/credit.vim`) que verifica periodicamente (`CursorHold`/`BufEnter`/`InsertLeave`) se o `winbar` ainda contém o crédito, e o recoloca sozinho se não tiver — pra não sumir sem querer. Sem ajustar isso, esconder o header com `Shift+F12` duraria só até o próximo desses eventos, porque o watchdog ia religar sozinho. Agora o watchdog checa `g:icaro_header_hidden` antes de agir: se você escondeu de propósito, ele respeita.
+
+O estado continua persistente em `~/.vim/.icaro_header_state`: escondido continua escondido após eventos e após reabrir o Vim; ao mostrar novamente, tabline e winbar voltam juntas.
+
+Em terminais/builds de Vim sem suporte a `winbar` (`exists('+winbar')` falso — builds mais antigas ou compiladas sem essa feature), `Shift+F12` simplesmente não faz nada, sem erro.
+
+---
+
+## Licença
+
+Esta configuração é pessoal/educacional e pode ser modificada livremente.
+
+Os plugins utilizados pertencem aos seus respectivos projetos e autores.
+
+**Configuração Vim Ícaro Lira**
