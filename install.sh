@@ -38,6 +38,32 @@ ok()    { echo -e "${c_green}[✓]${c_reset} $1"; }
 warn()  { echo -e "${c_yellow}[!]${c_reset} $1"; }
 title() { echo -e "\n${c_bold}$1${c_reset}\n"; }
 
+
+select_menu() {
+    local title="$1"; shift
+    local -a options=("$@")
+    local idx=0 key rest i
+    while true; do
+        printf '\033[2J\033[H'
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "  $title"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo
+        for i in "${!options[@]}"; do
+            if [ "$i" -eq "$idx" ]; then printf '  \033[1;7m ❯ %-54s \033[0m\n' "${options[$i]}"; else printf '    %-56s\n' "${options[$i]}"; fi
+        done
+        echo
+        echo "  ↑ ↓  navegar     ENTER  confirmar"
+        IFS= read -rsn1 key || true
+        if [ "$key" = $'\033' ]; then IFS= read -rsn2 rest || true; key="$key$rest"; fi
+        case "$key" in
+            $'\033[A'|$'\033[D') idx=$(( (idx - 1 + ${#options[@]}) % ${#options[@]} )) ;;
+            $'\033[B'|$'\033[C') idx=$(( (idx + 1) % ${#options[@]} )) ;;
+            "") MENU_INDEX="$idx"; return 0 ;;
+        esac
+    done
+}
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KITTY_ARGS=()
 FORCE_MODE=""
@@ -73,11 +99,10 @@ elif ! command -v sudo >/dev/null 2>&1; then
     ICARO_MODE="user"
     info "'sudo' não encontrado neste sistema — instalando tudo em \$HOME/.local."
 else
-    echo "Em muitos laboratórios (ex: labs da UFCG) você tem 'sudo' instalado no"
-    echo "sistema, mas SEM permissão de usar de verdade."
-    read -rp "Você TEM acesso a sudo nesta máquina (root de verdade)? [s/N] " resp_sudo
-    resp_sudo="${resp_sudo:-n}"
-    if [[ "$resp_sudo" =~ ^[Ss]$ ]]; then ICARO_MODE="system"; else ICARO_MODE="user"; fi
+    select_menu "MODO DE INSTALAÇÃO" \
+        "Instalação no usuário — sem sudo (recomendado para laboratório)" \
+        "Instalação do sistema — usando sudo"
+    if [ "$MENU_INDEX" -eq 1 ]; then ICARO_MODE="system"; else ICARO_MODE="user"; fi
 fi
 export ICARO_MODE
 
@@ -87,44 +112,8 @@ else
     ok "Modo: instalação via gerenciador de pacotes do sistema, com sudo."
 fi
 
-# ---------- pergunta UMA VEZ o estilo + paleta do terminal (kitty) ----------
-if [ -z "$TERM_STYLE" ]; then
-    echo
-    echo "Como você quer o terminal (kitty)?"
-    echo "  1) Cor translúcida (blur atrás)"
-    echo "  2) Cor sólida (sem transparência)"
-    read -rp "Escolha [1/2] (padrão: 1) " resp_style || resp_style=""
-    case "${resp_style:-1}" in
-        2|s|S) TERM_STYLE="solid" ;;
-        *)     TERM_STYLE="transparent" ;;
-    esac
-fi
-
-if [ -z "$TERM_PALETTE" ]; then
-    echo
-    echo "Qual paleta de cores você quer?"
-    echo "  1) Azul escuro"
-    echo "  2) Noite"
-    echo "  3) Grafite"
-    echo "  4) Roxo escuro"
-    echo "  5) Pastel"
-    echo "  6) Pastel azul"
-    echo "  7) Solarized escuro"
-    echo "  8) Solarized claro"
-    read -rp "Escolha [1-8] (padrão: 1) " resp_palette || resp_palette=""
-    case "${resp_palette:-1}" in
-        1) TERM_PALETTE="navy" ;;
-        2) TERM_PALETTE="midnight" ;;
-        3) TERM_PALETTE="graphite" ;;
-        4) TERM_PALETTE="purple" ;;
-        5) TERM_PALETTE="pastel" ;;
-        6) TERM_PALETTE="pastel_blue" ;;
-        7) TERM_PALETTE="solarized_dark" ;;
-        8) TERM_PALETTE="solarized_light" ;;
-        *) TERM_PALETTE="navy" ;;
-    esac
-fi
-
+# ---------- aparência do terminal (kitty) ----------
+# A seleção interativa detalhada acontece no instalador do kitty, com preview real.
 export ICARO_TERM_STYLE="$TERM_STYLE"
 export ICARO_TERM_PALETTE="$TERM_PALETTE"
 ok "Terminal: $TERM_STYLE + paleta $TERM_PALETTE."

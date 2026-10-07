@@ -34,6 +34,20 @@ if !isdirectory(expand('~/.vim/pack/plugins/opt/coc.nvim'))
     function! ToggleAutoPairs() abort
         echo 'coc.nvim não está instalado (rode install.sh de novo)'
     endfunction
+    function! ToggleQuietMode() abort
+        let g:icaro_quiet_mode = !get(g:, 'icaro_quiet_mode', 0)
+        if g:icaro_quiet_mode
+            silent! NoMatchParen
+            for l:id in popup_list()
+                silent! call popup_close(l:id)
+            endfor
+            echo 'Modo silencioso: popups e marcacoes DESLIGADOS (coc.nvim não está instalado)'
+        else
+            silent! DoMatchParen
+            echo 'Modo silencioso: DESLIGADO'
+        endif
+        redraw!
+    endfunction
     finish
 endif
 
@@ -247,6 +261,109 @@ nnoremap <leader>rn <Plug>(coc-rename)
 
 " Organizar imports (equivalente ao Ctrl+Shift+O do Eclipse/VSCode)
 nnoremap <leader>oi :call CocActionAsync('runCommand', 'java.action.organizeImports')<CR>
+
+
+" ------------------------------------------------------------
+" MODO SILENCIOSO — desliga de uma vez tudo que o autocomplete/LSP
+" pode colocar por cima ou ao redor do código.
+"
+" S-F11 / :Off = DESLIGA:
+"   - popup de sugestões
+"   - popup de assinatura
+"   - hover/floating windows já abertas
+"   - inlay hints / texto fantasma
+"   - pares automáticos
+"   - diagnósticos visuais (sinais, highlight e virtual text)
+"   - highlight automático de parênteses
+"
+" É um toggle: apertar S-F11 ou :Off de novo restaura os estados que
+" estavam configurados antes do modo silencioso.
+" ------------------------------------------------------------
+function! ToggleQuietMode() abort
+    let g:icaro_quiet_mode = !get(g:, 'icaro_quiet_mode', 0)
+
+    if g:icaro_quiet_mode
+        " Guarda os estados atuais para restaurar exatamente como estavam.
+        let g:icaro_quiet_saved_inlay = get(g:, 'my_inlay_hints_enabled', 1)
+        let g:icaro_quiet_saved_pairs = get(g:, 'icaro_pairs_enabled', 1)
+        let g:icaro_quiet_saved_matchparen = get(g:, 'icaro_matchparen_enabled', 1)
+        let g:icaro_quiet_saved_ac = deepcopy(get(g:, 'icaro_ac_state', {}))
+
+        " Fecha imediatamente qualquer popup aberto.
+        silent! call coc#pum#cancel()
+        silent! call coc#pum#close()
+        silent! call coc#float#close_all()
+
+        " Impede novos popups de sugestão em todos os buffers.
+        for l:bufnr in range(1, bufnr('$'))
+            if bufexists(l:bufnr)
+                call setbufvar(l:bufnr, 'coc_suggest_disable', 1)
+                call setbufvar(l:bufnr, 'coc_pairs_disabled', g:icaro_pairs_characters)
+            endif
+        endfor
+
+        " Desliga os recursos visuais do coc/LSP.
+        try
+            call CocAction('updateConfig', 'suggest.enable', v:false)
+            call CocAction('updateConfig', 'signature.enable', v:false)
+            call CocAction('updateConfig', 'inlayHint.enable', v:false)
+            call CocAction('updateConfig', 'java.inlayHints.parameterNames.enabled', 'none')
+            call CocAction('updateConfig', 'diagnostic.enable', v:false)
+            call CocAction('updateConfig', 'diagnostic.virtualText', v:false)
+            call CocAction('updateConfig', 'diagnostic.signs', v:false)
+            call CocAction('updateConfig', 'diagnostic.highlight', v:false)
+        catch /.*/
+        endtry
+
+        " Limpa imediatamente inlay/diagnósticos que já estejam na tela.
+        silent! call CocActionAsync('runCommand', 'document.disableInlayHint', bufnr('%'))
+        silent! call CocActionAsync('diagnostic.clear')
+
+        " Desliga também o matchparen, que é a marcação visual nativa
+        " normalmente confundida com as marcações do autocomplete.
+        silent! NoMatchParen
+
+        echo 'Modo silencioso: POPUPS e MARCACOES do autocomplete/LSP DESLIGADOS'
+    else
+        " Restaura os estados anteriores.
+        if exists('g:icaro_quiet_saved_ac')
+            let g:icaro_ac_state = deepcopy(g:icaro_quiet_saved_ac)
+        endif
+        let g:my_inlay_hints_enabled = get(g:, 'icaro_quiet_saved_inlay', 1)
+        let g:icaro_pairs_enabled = get(g:, 'icaro_quiet_saved_pairs', 1)
+        let g:icaro_matchparen_enabled = get(g:, 'icaro_quiet_saved_matchparen', 1)
+
+        try
+            call CocAction('updateConfig', 'suggest.enable', v:true)
+            call CocAction('updateConfig', 'signature.enable', g:icaro_pairs_enabled ? v:true : v:false)
+            call CocAction('updateConfig', 'inlayHint.enable', g:my_inlay_hints_enabled ? v:true : v:false)
+            call CocAction('updateConfig', 'java.inlayHints.parameterNames.enabled', g:my_inlay_hints_enabled ? 'all' : 'none')
+            call CocAction('updateConfig', 'diagnostic.enable', v:true)
+            call CocAction('updateConfig', 'diagnostic.virtualText', v:true)
+            call CocAction('updateConfig', 'diagnostic.signs', v:true)
+            call CocAction('updateConfig', 'diagnostic.highlight', v:true)
+        catch /.*/
+        endtry
+
+        for l:bufnr in range(1, bufnr('$'))
+            if bufexists(l:bufnr)
+                let l:ft = getbufvar(l:bufnr, '&filetype')
+                let l:ac = get(g:icaro_ac_state, l:ft, 1)
+                call setbufvar(l:bufnr, 'coc_suggest_disable', l:ac ? 0 : 1)
+                call setbufvar(l:bufnr, 'coc_pairs_disabled',
+                            \ g:icaro_pairs_enabled ? [] : g:icaro_pairs_characters)
+            endif
+        endfor
+
+        if g:icaro_matchparen_enabled
+            silent! DoMatchParen
+        endif
+
+        echo 'Modo silencioso: recursos visuais RESTAURADOS'
+    endif
+
+    redraw!
+endfunction
 
 " ------------------------------------------------------------
 " Grava o estado (0/1) num arquivinho, pra sobreviver a fechar/abrir

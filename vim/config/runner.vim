@@ -17,7 +17,27 @@ let g:loaded_my_runner = 1
 " teclado normalmente o tempo todo, sem travar esperando o comando.
 " ============================================================
 
+let g:icaro_runner_job = -1
 let g:icaro_runner_bufnr = -1
+
+function! IcaroRunnerExit(job, status) abort
+    " O callback roda no buffer do terminal depois que o comando terminou.
+    let l:buf = exists('*term_getbuf') ? term_getbuf(a:job) : bufnr('%')
+    if l:buf > 0
+        call setbufvar(l:buf, 'icaro_runner_finished', 1)
+        call setbufvar(l:buf, 'icaro_runner_exit_status', a:status)
+    endif
+endfunction
+
+function! IcaroRunnerEnter() abort
+    if get(b:, 'icaro_runner_finished', 0)
+        " Sai do Terminal-Job mode e fecha a janela.
+        return "\<C-\>\<C-n>:bwipeout!<CR>"
+    endif
+    " Enquanto o programa ainda está rodando, o Enter vai normalmente
+    " para o processo (stdin).
+    return "\<CR>"
+endfunction
 
 function! IcaroRunInTerminal(cmd) abort
     if !exists('*term_start')
@@ -41,14 +61,21 @@ function! IcaroRunInTerminal(cmd) abort
     " no fim). Quem some o terminal antigo é a limpeza lá em cima
     " (antes de abrir um novo com F5/F6/F7/F8) — ou você mesmo, com
     " 'q' (veja abaixo).
+    " Marca o terminal como "em execução". O callback abaixo troca
+    " para 1 quando o processo terminar.
     let l:wrapped = a:cmd . '; echo; echo "[Codigo de saida: $?]"'
-
     let l:shell = executable('bash') ? 'bash' : 'sh'
-    let g:icaro_runner_bufnr = term_start([l:shell, '-c', l:wrapped], {
+    let g:icaro_runner_job = term_start([l:shell, '-c', l:wrapped], {
                 \ 'curwin': 1,
                 \ 'term_kill': 'kill',
                 \ 'term_name': 'output',
+                \ 'exit_cb': function('IcaroRunnerExit'),
                 \ })
+    let g:icaro_runner_bufnr = exists('*term_getbuf') ? term_getbuf(g:icaro_runner_job) : bufnr('%')
+    let b:icaro_runner_finished = 0
+    if exists('*term_getstatus') && term_getstatus(g:icaro_runner_job) ==# 'finished'
+        let b:icaro_runner_finished = 1
+    endif
     setlocal nonumber norelativenumber signcolumn=no
 
     " ------------------------------------------------------------
@@ -66,6 +93,7 @@ function! IcaroRunInTerminal(cmd) abort
     " 'a') volta pro modo de terminal, caso o programa ainda esteja
     " rodando e esperando você digitar algo.
     " ------------------------------------------------------------
+    tnoremap <buffer><silent><expr> <CR> IcaroRunnerEnter()
     tnoremap <buffer><silent> <Esc> <C-\><C-n>
 
     " Fecha a janela com uma tecla só, uma vez em Terminal-Normal mode

@@ -11,6 +11,29 @@ let g:loaded_my_keymaps = 1
 nnoremap <C-s> :write<CR>
 inoremap <C-s> <Esc>:write<CR>a
 
+
+" ------------------------------------------------------------
+" Comandos rápidos equivalentes aos F-keys.
+" Vim exige que comandos definidos pelo usuário comecem com maiúscula;
+" por isso os aliases são curtos e fáceis de decorar:
+"   :Th :Pv :Nt :Ih :Ac :Cp :Rn :Br :Ti :Te :Pa :Mh :Of :Hd :Cs
+" ------------------------------------------------------------
+command! Th  call CycleTheme()
+command! Pv  call PreviousTheme()
+command! Nt  silent! NERDTreeToggle
+command! Ih  call ToggleInlayHints()
+command! Ac  call ToggleAutocomplete()
+command! Cp  call IcaroDispatchFunctionKey(5)
+command! Rn  call IcaroDispatchFunctionKey(6)
+command! Br  call IcaroDispatchFunctionKey(7)
+command! Ti  call IcaroDispatchFunctionKey(8)
+command! Te  execute 'terminal'
+command! Pa  call ToggleAutoPairs()
+command! Mh  call ToggleMatchParen()
+command! Of  call ToggleQuietMode()
+command! Hd  call ToggleHeader()
+command! Cs  call ToggleCheatsheet()
+
 " F5-F8 (compilar/executar/testar) são definidos por linguagem,
 " veja config/cpp.vim e config/java.vim (mapeamentos locais por filetype)
 
@@ -48,6 +71,7 @@ nnoremap <S-F10> :call ToggleMatchParen()<CR>
 
 " Shift+F12: mostra/esconde o header (winbar) no topo da janela
 " (ver config/appearance.vim e o watchdog em config/credit.vim)
+nnoremap <S-F11> :call ToggleQuietMode()<CR>
 nnoremap <S-F12> :call ToggleHeader()<CR>
 nnoremap <F24> :call ToggleHeader()<CR>
 
@@ -74,6 +98,7 @@ inoremap <silent> <F10> <C-o>:call ToggleAutoPairs()<CR>
 inoremap <silent> <S-F10> <C-o>:call ToggleMatchParen()<CR>
 inoremap <silent> <F9> <C-o>:terminal<CR>
 inoremap <silent> <F12> <C-o>:call ToggleCheatsheet()<CR>
+inoremap <silent> <S-F11> <C-o>:call ToggleQuietMode()<CR>
 inoremap <silent> <S-F12> <C-o>:call ToggleHeader()<CR>
 inoremap <silent> <F24> <C-o>:call ToggleHeader()<CR>
 

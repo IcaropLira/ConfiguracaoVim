@@ -67,6 +67,8 @@ function! IcaroDispatchShiftFunctionKey(n) abort
         call PreviousTheme()
     elseif a:n == 10
         call ToggleMatchParen()
+    elseif a:n == 11
+        call ToggleQuietMode()
     elseif a:n == 12
         call ToggleHeader()
     endif

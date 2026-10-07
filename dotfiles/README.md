@@ -40,15 +40,16 @@ O `install.sh`:
    (`pacman`, `apt`, `dnf`, `zypper` ou `brew`); se um pacote falhar ou não existir no repositório,
    cai automaticamente para o binário pré-compilado, sem travar a instalação.
 3. Pergunta se você quer instalar também **starship**, **eza**, **bat**, **zoxide** e **fzf**.
-4. Baixa e instala a **JetBrainsMono Nerd Font** em `~/.local/share/fonts` (nunca precisa de sudo).
-5. Faz **backup** de qualquer config existente em `~/.config/kitty`, `~/.config/starship.toml` e
+4. Pergunta se você quer um **visualizer de inicialização**. Você pode escolher **Fastfetch**, **Neofetch**, usar o logo padrão ou uma **foto personalizada** e escolher a cor com as **setas do teclado**, vendo um preview em tempo real antes de confirmar. Se responder não, nenhum dos dois é iniciado.
+5. Baixa e instala a **JetBrainsMono Nerd Font** em `~/.local/share/fonts` (nunca precisa de sudo).
+6. Faz **backup** de qualquer config existente em `~/.config/kitty`, `~/.config/starship.toml` e
    `~/.config/dotfiles-shell` (salva como `.bak-<data>`) e cria **symlinks** apontando pra este
    repositório — então dar `git pull` no repo já atualiza sua config.
-6. Garante que `~/.local/bin` está no seu `PATH` (adiciona ao `.bashrc`/`.zshrc` se preciso).
-7. Se você instalou os extras, adiciona uma linha no `.bashrc`/`.zshrc` que carrega
+7. Garante que `~/.local/bin` está no seu `PATH` (adiciona ao `.bashrc`/`.zshrc` se preciso).
+8. Se você instalou os extras, adiciona uma linha no `.bashrc`/`.zshrc` que carrega
    `shell/shellrc.sh` — é ali que ficam os aliases do `eza`/`bat` e a inicialização do
    `starship`/`zoxide`/`fzf`.
-8. **Define o kitty como terminal padrão do sistema** (veja a seção abaixo) e **fixa um atalho
+9. **Define o kitty como terminal padrão do sistema** (veja a seção abaixo) e **fixa um atalho
    dele na barra de tarefas** (GNOME Shell — em outros ambientes, faz na mão em poucos cliques).
 
 ### Instalando sem sudo (PC de laboratório, servidor compartilhado, etc.)
@@ -116,16 +117,26 @@ dotfiles/
 ├── starship/
 │   └── starship.toml        # prompt (segmentos com paleta Adwaita Dark)
 └── shell/
-    └── shellrc.sh           # aliases (eza/bat) + init do starship/zoxide/fzf
+    ├── shellrc.sh           # aliases + init do starship/zoxide/fzf
+    └── visualizer.sh        # inicialização opcional do Neofetch/Fastfetch
 ```
 
 ## Customizando
 
 - **Cores do terminal**: edite `kitty/current-theme.conf`, ou troque de tema com
   `kitten themes` (kitty já vem com um seletor de temas embutido).
+- **Seletor de aparência**: no instalador você ajusta **Opacidade, Blur e Paleta separadamente**.
+  `↑ ↓`/`TAB` escolhe o item (marcado com ▶), `← →` muda o valor, `ENTER` confirma. Cada item mostra
+  a posição (ex.: `5/28`) e uma barra `●···` com o lugar da opção entre todas; na Paleta aparece
+  também a lista das vizinhas com amostras de cor.
+- **Paletas** (28): Azul escuro, Noite, Grafite, Roxo escuro, Pastel, Pastel azul, Solarized escuro/claro,
+  Vermelho vinho, Verde floresta, Ciano profundo, Âmbar, Índigo, Rosa neon, Dracula, Nord, Gruvbox,
+  Tokyo Night, Catppuccin Mocha, One Dark, Rosé Pine, Monokai, Ayu Mirage, Everforest, Kanagawa,
+  Preto OLED, GitHub Dark e Pôr do sol. Para criar a sua, adicione uma linha em `kitty/palettes.sh`.
+- **Erro `syntax error near unexpected token fi` no .bashrc**: rode `bash dotfiles/fix-bashrc.sh`
+  (faz backup e conserta sozinho). O instalador também faz esse reparo.
 - **Fonte**: mude `font_family` em `kitty/kitty.conf` (por padrão `JetBrainsMono Nerd Font`).
 - **Cor translúcida ou cor sólida**: o `install.sh` pergunta (ou use `--transparent` / `--solid`; `--black` continua como alias) e
-- **Paletas do terminal**: Azul escuro, Noite, Grafite, Roxo escuro, Pastel, Pastel azul, Solarized escuro e Solarized claro.
   grava a escolha em `kitty/transparency.conf`, que o `kitty.conf` inclui por último. Edite esse
   arquivo (`background_opacity`, `background_blur`, `background`) pra ajustar depois.
 - **Transparência**: `background_opacity` em `kitty/transparency.conf` (0.0 a 1.0; quanto menor, mais
