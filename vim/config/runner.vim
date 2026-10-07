@@ -20,23 +20,35 @@ let g:loaded_my_runner = 1
 let g:icaro_runner_job = -1
 let g:icaro_runner_bufnr = -1
 
-function! IcaroRunnerExit(job, status) abort
-    " O callback roda no buffer do terminal depois que o comando terminou.
-    let l:buf = exists('*term_getbuf') ? term_getbuf(a:job) : bufnr('%')
-    if l:buf > 0
-        call setbufvar(l:buf, 'icaro_runner_finished', 1)
-        call setbufvar(l:buf, 'icaro_runner_exit_status', a:status)
+" O terminal "terminou" quando o processo acabou (term_getstatus contém "finished").
+" Consultamos o estado real do buffer em vez de uma flag, que dependia de callback.
+function! IcaroRunnerFinished() abort
+    if !exists('*term_getstatus')
+        return 0
     endif
+    return term_getstatus(bufnr('%')) =~# 'finished'
 endfunction
 
+" Enter em Terminal-Job mode (programa ainda rodando ou acabou de terminar).
 function! IcaroRunnerEnter() abort
-    if get(b:, 'icaro_runner_finished', 0)
+    if IcaroRunnerFinished()
         " Sai do Terminal-Job mode e fecha a janela.
-        return "\<C-\>\<C-n>:bwipeout!<CR>"
+        " (\<CR> e não <CR>: dentro de aspas duplas, <CR> seria texto literal.)
+        return "\<C-\\>\<C-n>:bwipeout!\<CR>"
     endif
     " Enquanto o programa ainda está rodando, o Enter vai normalmente
     " para o processo (stdin).
     return "\<CR>"
+endfunction
+
+" Enter em Terminal-Normal mode. É AQUI que o Vim fica depois que o programa
+" termina (ou depois de apertar Esc): o tnoremap acima não vale mais nesse modo.
+function! IcaroRunnerNormalEnter() abort
+    if IcaroRunnerFinished()
+        bwipeout!
+    else
+        normal! j
+    endif
 endfunction
 
 function! IcaroRunInTerminal(cmd) abort
@@ -63,19 +75,14 @@ function! IcaroRunInTerminal(cmd) abort
     " 'q' (veja abaixo).
     " Marca o terminal como "em execução". O callback abaixo troca
     " para 1 quando o processo terminar.
-    let l:wrapped = a:cmd . '; echo; echo "[Codigo de saida: $?]"'
+    let l:wrapped = a:cmd . '; icaro_ec=$?; echo; echo "[Codigo de saida: $icaro_ec]  —  Enter ou q fecha"'
     let l:shell = executable('bash') ? 'bash' : 'sh'
     let g:icaro_runner_job = term_start([l:shell, '-c', l:wrapped], {
                 \ 'curwin': 1,
                 \ 'term_kill': 'kill',
                 \ 'term_name': 'output',
-                \ 'exit_cb': function('IcaroRunnerExit'),
                 \ })
     let g:icaro_runner_bufnr = exists('*term_getbuf') ? term_getbuf(g:icaro_runner_job) : bufnr('%')
-    let b:icaro_runner_finished = 0
-    if exists('*term_getstatus') && term_getstatus(g:icaro_runner_job) ==# 'finished'
-        let b:icaro_runner_finished = 1
-    endif
     setlocal nonumber norelativenumber signcolumn=no
 
     " ------------------------------------------------------------
@@ -95,6 +102,7 @@ function! IcaroRunInTerminal(cmd) abort
     " ------------------------------------------------------------
     tnoremap <buffer><silent><expr> <CR> IcaroRunnerEnter()
     tnoremap <buffer><silent> <Esc> <C-\><C-n>
+    nnoremap <buffer><silent> <CR> :call IcaroRunnerNormalEnter()<CR>
 
     " Fecha a janela com uma tecla só, uma vez em Terminal-Normal mode
     " ('q' é uma tecla livre lá, não é usada pra mais nada nesse modo)

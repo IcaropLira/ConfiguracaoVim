@@ -129,6 +129,8 @@ dotfiles/
   `↑ ↓`/`TAB` escolhe o item (marcado com ▶), `← →` muda o valor, `ENTER` confirma. Cada item mostra
   a posição (ex.: `5/28`) e uma barra `●···` com o lugar da opção entre todas; na Paleta aparece
   também a lista das vizinhas com amostras de cor.
+- **Seletor de aparência**: Opacidade (0–100) e Blur (0–100) com preview dinâmico, mais a Paleta; `← →` ±5, `, .` ±1,
+  `R` renomeia a paleta, `ENTER` abre a confirmação "Tem certeza?" antes de gravar.
 - **Paletas** (28): Azul escuro, Noite, Grafite, Roxo escuro, Pastel, Pastel azul, Solarized escuro/claro,
   Vermelho vinho, Verde floresta, Ciano profundo, Âmbar, Índigo, Rosa neon, Dracula, Nord, Gruvbox,
   Tokyo Night, Catppuccin Mocha, One Dark, Rosé Pine, Monokai, Ayu Mirage, Everforest, Kanagawa,

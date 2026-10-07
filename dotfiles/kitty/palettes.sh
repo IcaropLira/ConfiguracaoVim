@@ -79,3 +79,21 @@ color14                   ${f[19]}
 color15                   ${f[20]}
 PAL
 }
+
+# Nomes personalizados: crie/edite ~/.config/kitty/palette-names.conf com linhas "id=Novo nome"
+# (ex.: dracula=Meu roxo). Também dá pra renomear com a tecla R dentro do seletor.
+ICARO_NAMES_FILE="${ICARO_NAMES_FILE:-${XDG_CONFIG_HOME:-$HOME/.config}/kitty/palette-names.conf}"
+NAMES_FILE="$ICARO_NAMES_FILE"
+apply_custom_names() {
+    [ -f "$NAMES_FILE" ] || return 0
+    local id name i
+    while IFS='=' read -r id name; do
+        [ -n "$id" ] && [ "${id#\#}" = "$id" ] && [ -n "$name" ] || continue
+        for i in "${!ICARO_PALETTES[@]}"; do
+            if [ "${ICARO_PALETTES[$i]%%|*}" = "$id" ]; then
+                local rest="${ICARO_PALETTES[$i]#*|}"; rest="${rest#*|}"
+                ICARO_PALETTES[$i]="$id|$name|$rest"
+            fi
+        done
+    done < "$NAMES_FILE"
+}

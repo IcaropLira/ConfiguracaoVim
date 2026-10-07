@@ -620,127 +620,13 @@ if [ "$SKIP_EXTRAS" = false ]; then
 fi
 
 # ---------- 3b. aparência do terminal: opacidade + blur + paleta ----------
-# Seletor interativo com 3 aspectos independentes. Cada um é ajustado separadamente:
-#   ↑ ↓ (ou TAB)  escolhe QUAL aspecto está sendo editado (marcado com ▶)
-#   ← →           muda o valor do aspecto selecionado
-#   ENTER         confirma tudo
-# O preview usa o próprio terminal: OSC 10/11 muda foreground/background na hora e,
-# se o remote control do kitty estiver ativo, a opacidade da janela também.
+# O seletor (kitty/appearance-picker.sh) tem 3 aspectos independentes (opacidade 0-100, blur 0-100
+# e paleta), preview ao vivo e uma tela "tem certeza?" antes de gravar qualquer coisa.
 # shellcheck disable=SC1091
 source "$REPO_DIR/kitty/palettes.sh"
+apply_custom_names
 
-OPACITY_VALUES=(1.00 0.95 0.90 0.85 0.80 0.75 0.70 0.60 0.50)
-BLUR_VALUES=(0 6 12 18 24 32 48)
 
-# hex "#rrggbb" -> "r;g;b"
-hex_to_rgb() { local h="${1#\#}"; printf '%d;%d;%d' "$((16#${h:0:2}))" "$((16#${h:2:2}))" "$((16#${h:4:2}))"; }
-
-# Barra de posição: ●○○○○○ — mostra onde você está no conjunto inteiro.
-position_dots() {
-    local cur="$1" total="$2" i out=""
-    for ((i = 0; i < total; i++)); do
-        if [ "$i" -eq "$cur" ]; then out+="●"; else out+="·"; fi
-    done
-    printf '%s' "$out"
-}
-
-draw_appearance_picker() {
-    local focus="$1" oi="$2" bi="$3" pi="$4"
-    local line IFS_OLD="$IFS" i
-    local -a f
-    IFS='|' read -ra f <<< "${ICARO_PALETTES[$pi]}"
-    IFS="$IFS_OLD"
-    local bg="${f[2]}" fg="${f[3]}" opacity="${OPACITY_VALUES[$oi]}" blur="${BLUR_VALUES[$bi]}"
-    local fgrgb bgrgb
-    fgrgb="$(hex_to_rgb "$fg")"; bgrgb="$(hex_to_rgb "$bg")"
-
-    # aplica preview real no terminal
-    printf '\033]10;%s\007\033]11;%s\007' "$fg" "$bg" 2>/dev/null || true
-    if command -v kitten >/dev/null 2>&1; then
-        kitten @ set-background-opacity "$opacity" >/dev/null 2>&1 || true
-    fi
-
-    printf '\033[2J\033[H\033[38;2;%sm\033[48;2;%sm' "$fgrgb" "$bgrgb"
-    printf '\n  \033[1mAPARÊNCIA DO TERMINAL\033[22m — ajuste cada item separadamente\n\n'
-
-    local -a labels=("Opacidade" "Blur" "Paleta")
-    local -a values=("${opacity}  ($(awk -v o="$opacity" 'BEGIN{printf "%d", o*100}')%)" "$blur" "${f[1]}")
-    local -a idxs=("$oi" "$bi" "$pi")
-    local -a totals=("${#OPACITY_VALUES[@]}" "${#BLUR_VALUES[@]}" "${#ICARO_PALETTES[@]}")
-    for i in 0 1 2; do
-        if [ "$i" -eq "$focus" ]; then
-            printf '  \033[1;7m ▶ %-10s ◀ %-26s %2d/%-2d \033[27;22m\n' "${labels[$i]}" "${values[$i]}" "$((idxs[i] + 1))" "${totals[$i]}"
-        else
-            printf '      %-10s   %-26s %2d/%-2d\n' "${labels[$i]}" "${values[$i]}" "$((idxs[i] + 1))" "${totals[$i]}"
-        fi
-    done
-
-    # visão geral do item selecionado
-    printf '\n  Posição em "%s": ' "${labels[$focus]}"
-    position_dots "${idxs[$focus]}" "${totals[$focus]}"
-    printf '\n'
-
-    if [ "$focus" -eq 2 ]; then
-        # lista de paletas ao redor da atual (janela de 9), com indicador ❯
-        local start=$((pi - 4)) end=$((pi + 4)) n="${#ICARO_PALETTES[@]}"
-        [ "$start" -lt 0 ] && { end=$((end - start)); start=0; }
-        [ "$end" -ge "$n" ] && { start=$((start - (end - n + 1))); end=$((n - 1)); }
-        [ "$start" -lt 0 ] && start=0
-        printf '\n'
-        for ((i = start; i <= end; i++)); do
-            local -a g
-            IFS='|' read -ra g <<< "${ICARO_PALETTES[$i]}"
-            IFS="$IFS_OLD"
-            if [ "$i" -eq "$pi" ]; then
-                printf '   \033[1m❯ %2d. %-20s\033[22m' "$((i + 1))" "${g[1]}"
-            else
-                printf '     %2d. %-20s' "$((i + 1))" "${g[1]}"
-            fi
-            printf '\033[48;2;%sm  \033[48;2;%sm  \033[48;2;%sm  \033[48;2;%sm  \033[48;2;%sm  \033[48;2;%sm  \033[48;2;%sm\n' \
-                "$(hex_to_rgb "${g[2]}")" "$(hex_to_rgb "${g[7]}")" "$(hex_to_rgb "${g[8]}")" "$(hex_to_rgb "${g[9]}")" \
-                "$(hex_to_rgb "${g[10]}")" "$(hex_to_rgb "${g[11]}")" "$(hex_to_rgb "${g[12]}")"
-            printf '\033[38;2;%sm\033[48;2;%sm' "$fgrgb" "$bgrgb"
-        done
-    fi
-
-    printf '\n  Amostra: '
-    local k
-    for k in 7 8 9 10 11 12; do
-        printf '\033[48;2;%sm   \033[48;2;%sm ' "$(hex_to_rgb "${f[$k]}")" "$bgrgb"
-    done
-    printf '\n  C++   Java   Python   Vim   tmux   —   Fundo: %s  Opacidade: %s  Blur: %s\n' "${f[1]}" "$opacity" "$blur"
-    printf '\n  \033[2m↑ ↓ / TAB  trocar de item     ← →  mudar o valor     ENTER  confirmar\033[22m\n'
-    printf '\033[0m'
-}
-
-appearance_picker() {
-    local focus=2 oi="$1" bi="$2" pi="$3" key rest
-    while true; do
-        draw_appearance_picker "$focus" "$oi" "$bi" "$pi"
-        IFS= read -rsn1 key || true
-        if [ "$key" = $'\033' ]; then
-            IFS= read -rsn2 -t 0.05 rest || true
-            key="$key$rest"
-        fi
-        case "$key" in
-            $'\033[A') focus=$(( (focus + 2) % 3 )) ;;
-            $'\033[B'|$'\t') focus=$(( (focus + 1) % 3 )) ;;
-            $'\033[C'|$'\033[D')
-                local d=1; [ "$key" = $'\033[D' ] && d=-1
-                case "$focus" in
-                    0) oi=$(( (oi + d + ${#OPACITY_VALUES[@]}) % ${#OPACITY_VALUES[@]} )) ;;
-                    1) bi=$(( (bi + d + ${#BLUR_VALUES[@]}) % ${#BLUR_VALUES[@]} )) ;;
-                    2) pi=$(( (pi + d + ${#ICARO_PALETTES[@]}) % ${#ICARO_PALETTES[@]} )) ;;
-                esac ;;
-            "") break ;;
-        esac
-    done
-    # devolve o terminal ao estado normal; o kitty recarrega as cores do arquivo ao abrir
-    printf '\033]110\007\033]111\007\033[0m\033[2J\033[H'
-    PICK_OI="$oi"; PICK_BI="$bi"; PICK_PI="$pi"
-}
-
-# índice de um valor dentro de um array (o mais próximo para números)
 index_of_palette() {
     local want="$1" i
     for i in "${!ICARO_PALETTES[@]}"; do
@@ -748,46 +634,59 @@ index_of_palette() {
     done
     echo 0
 }
-nearest_index() { # $1=valor, resto=lista
-    local v="$1"; shift
-    local best=0 bestd=999999 i=0 x d
-    for x in "$@"; do
-        d=$(awk -v a="$v" -v b="$x" 'BEGIN{d=(a-b)*1000; if(d<0)d=-d; printf "%d", d}')
-        if [ "$d" -lt "$bestd" ]; then bestd="$d"; best="$i"; fi
-        i=$((i + 1))
-    done
-    echo "$best"
+# Roda o seletor. Preferência: janela do kitty com remote control (opacidade/blur REAIS);
+# senão, o próprio terminal atual (cores reais + simulação de opacidade/blur).
+run_appearance_picker() {
+    local out="$1" oi="$2" bi="$3" pi="$4"
+    local picker="$REPO_DIR/kitty/appearance-picker.sh"
+    if command -v kitten >/dev/null 2>&1 && kitten @ ls >/dev/null 2>&1; then
+        bash "$picker" "$out" "$oi" "$bi" "$pi"; return
+    fi
+    if [ -x "$KITTY_BIN" ] && { [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; }; then
+        info "Abrindo o seletor numa janela do kitty (pra você ver opacidade e blur de verdade)..."
+        PATH="$(dirname "$KITTY_BIN"):$PATH" "$KITTY_BIN" --class icaro-picker --title "Aparência do terminal" \
+            -o allow_remote_control=yes -o dynamic_background_opacity=yes -o background_opacity=1 \
+            -o remember_window_size=no -o initial_window_width=92c -o initial_window_height=40c \
+            bash "$picker" "$out" "$oi" "$bi" "$pi" >/dev/null 2>&1 || true
+        [ -s "$out" ] && return
+        warn "Não deu pra usar a janela do kitty — usando este terminal (opacidade/blur só na simulação)."
+    fi
+    bash "$picker" "$out" "$oi" "$bi" "$pi"
 }
 
-# valores iniciais a partir dos parâmetros (se vierem) ou padrão
+# Valores iniciais (opacidade 0-100, blur 0-100), vindos dos parâmetros ou do padrão.
 case "$TERM_STYLE" in
-    solid|black) start_op="1.00"; start_blur=0 ;;
-    trans90)     start_op="0.90"; start_blur=12 ;;
-    trans70)     start_op="0.70"; start_blur=24 ;;
-    trans80|transparent|"") start_op="0.80"; start_blur=18 ;;
-    *)           start_op="0.80"; start_blur=18 ;;
+    solid|black) start_op=100; start_blur=0 ;;
+    trans90)     start_op=90;  start_blur=12 ;;
+    trans70)     start_op=70;  start_blur=24 ;;
+    *)           start_op=80;  start_blur=18 ;;
 esac
-start_oi="$(nearest_index "$start_op" "${OPACITY_VALUES[@]}")"
-start_bi="$(nearest_index "$start_blur" "${BLUR_VALUES[@]}")"
 start_pi=0
 [ -n "$TERM_PALETTE" ] && start_pi="$(index_of_palette "$TERM_PALETTE")"
 
 if [ -z "$TERM_STYLE" ] || [ -z "$TERM_PALETTE" ]; then
-    appearance_picker "$start_oi" "$start_bi" "$start_pi"
-    TERM_OPACITY="${OPACITY_VALUES[$PICK_OI]}"
-    TERM_BLUR="${BLUR_VALUES[$PICK_BI]}"
-    PALETTE_LINE="${ICARO_PALETTES[$PICK_PI]}"
+    PICK_OUT="$(mktemp)"; : > "$PICK_OUT"
+    run_appearance_picker "$PICK_OUT" "$start_op" "$start_blur" "$start_pi"
+    if [ -s "$PICK_OUT" ]; then
+        read -r PICK_OP PICK_BL PICK_PI < "$PICK_OUT"
+    else
+        warn "Seleção cancelada — mantendo o padrão (${start_op}% de opacidade, blur ${start_blur})."
+        PICK_OP="$start_op"; PICK_BL="$start_blur"; PICK_PI="$start_pi"
+    fi
+    rm -f "$PICK_OUT"
+    printf '\033[0m\033[2J\033[H'
 else
-    TERM_OPACITY="${OPACITY_VALUES[$start_oi]}"
-    TERM_BLUR="${BLUR_VALUES[$start_bi]}"
-    PALETTE_LINE="${ICARO_PALETTES[$start_pi]}"
-    if [ "$(index_of_palette "$TERM_PALETTE")" -eq 0 ] && [ "$TERM_PALETTE" != "navy" ]; then
-        warn "Paleta '$TERM_PALETTE' não reconhecida; usando Azul escuro."
+    PICK_OP="$start_op"; PICK_BL="$start_blur"; PICK_PI="$start_pi"
+    if [ "$start_pi" -eq 0 ] && [ -n "$TERM_PALETTE" ] && [ "${ICARO_PALETTES[0]%%|*}" != "$TERM_PALETTE" ]; then
+        warn "Paleta '$TERM_PALETTE' não reconhecida; usando a primeira da lista."
     fi
 fi
-[ "$TERM_OPACITY" = "1.00" ] && TERM_OPACITY="1.0"
-[ "$TERM_OPACITY" = "1.0" ] && TERM_STYLE="solid" || TERM_STYLE="translucent"
-IFS='|' read -ra _pal <<< "$PALETTE_LINE"; IFS=$' \t\n'
+TERM_OPACITY="$(awk -v o="$PICK_OP" 'BEGIN{printf "%.2f", o/100}')"
+TERM_BLUR="$PICK_BL"
+PALETTE_LINE="${ICARO_PALETTES[$PICK_PI]}"
+[ "$PICK_OP" -ge 100 ] && TERM_OPACITY="1.0"
+if [ "$PICK_OP" -ge 100 ]; then TERM_STYLE="solid"; else TERM_STYLE="translucent"; fi
+IFS='|' read -ra _pal <<< "$PALETTE_LINE"
 PALETTE_NAME="${_pal[1]}"
 
 PALETTE_FILE="$CONFIG_DIR/kitty/current-theme.conf"
@@ -800,7 +699,7 @@ background_opacity $TERM_OPACITY
 background_blur $TERM_BLUR
 dynamic_background_opacity yes
 STYLE
-if [ "$TERM_STYLE" = "solid" ]; then STYLE_NAME="Cor sólida"; else STYLE_NAME="Translúcido ${TERM_OPACITY} + blur ${TERM_BLUR}"; fi
+if [ "$TERM_STYLE" = "solid" ]; then STYLE_NAME="Cor sólida"; else STYLE_NAME="Translúcido ${PICK_OP}% + blur ${TERM_BLUR}"; fi
 
 ok "Terminal configurado: $STYLE_NAME + paleta $PALETTE_NAME."
 
