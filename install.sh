@@ -6,7 +6,7 @@
 #  |__|  |__|__|_____| |_| |__|  |_____| |_| |_____|__|__|
 #
 #  install.sh — instalador combinado: kitty (+ terminal padrão do
-#  sistema + atalho na barra de tarefas), tmux e Vim, tudo de uma vez.
+#  sistema + atalho na barra de tarefas), tmux e Vim e/ou Neovim.
 #
 #  Pergunta UMA VEZ se você tem acesso a sudo (o normal em laboratórios
 #  tipo os da UFCG é não ter) e repassa essa escolha pros três
@@ -26,6 +26,7 @@
 #    --palette    escolhe a paleta sem perguntar
 #    --user      força instalação sem sudo (pula a pergunta)
 #    --system    força instalação com sudo (pula a pergunta)
+#    --editor    vim | nvim | both — escolhe o editor sem perguntar
 #    --no-font   não instala a JetBrainsMono Nerd Font (kitty)
 #    --no-extras não instala starship/eza/bat/zoxide/fzf (kitty)
 #    --copy      copia as configs do kitty em vez de criar symlinks
@@ -67,6 +68,7 @@ select_menu() {
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KITTY_ARGS=()
 FORCE_MODE=""
+EDITORS=""
 TERM_STYLE=""
 TERM_PALETTE=""
 
@@ -78,8 +80,9 @@ for arg in "$@"; do
         --transparent) TERM_STYLE="transparent" ;;
         --solid|--black) TERM_STYLE="solid" ;;
         --palette=*) TERM_PALETTE="${arg#--palette=}" ;;
+        --editor=*) EDITORS="${arg#--editor=}" ;;
         -h|--help)
-            echo "Uso: ./install.sh [--user | --system] [--no-font] [--no-extras] [--copy] [--transparent | --solid] [--palette=<nome>]"
+            echo "Uso: ./install.sh [--user | --system] [--editor=vim|nvim|both] [--no-font] [--no-extras] [--copy] [--transparent | --solid] [--palette=<nome>]"
             exit 0
             ;;
     esac
@@ -87,7 +90,7 @@ done
 
 cat <<'BANNER'
 ==========================================================
-  Ícaro Lira — kitty + tmux + Vim, tudo de uma vez
+  Ícaro Lira — kitty + tmux + Vim/Neovim, tudo de uma vez
 ==========================================================
 BANNER
 echo
@@ -112,6 +115,17 @@ else
     ok "Modo: instalação via gerenciador de pacotes do sistema, com sudo."
 fi
 
+# ---------- qual editor instalar ----------
+if [ -z "$EDITORS" ]; then
+    select_menu "EDITOR" \
+        "Vim (config clássica, coc.nvim)" \
+        "Neovim (LSP nativo, Treesitter, interface mais completa)" \
+        "Os dois (Vim + Neovim)"
+    case "$MENU_INDEX" in 1) EDITORS="nvim" ;; 2) EDITORS="both" ;; *) EDITORS="vim" ;; esac
+fi
+case "$EDITORS" in vim|nvim|both) ;; *) warn "--editor inválido ('$EDITORS'); usando vim."; EDITORS="vim" ;; esac
+ok "Editor(es): $EDITORS"
+
 # ---------- aparência do terminal (kitty) ----------
 # A seleção interativa detalhada acontece no instalador do kitty, com preview real.
 export ICARO_TERM_STYLE="$TERM_STYLE"
@@ -121,7 +135,8 @@ ok "Terminal: $TERM_STYLE + paleta $TERM_PALETTE."
 SUMMARY=()
 
 # ---------- 1. kitty (+ terminal padrão + barra de tarefas) ----------
-title "1/3 — kitty (terminal)"
+TOTAL=3; [ "$EDITORS" = "both" ] && TOTAL=4
+title "1/$TOTAL — kitty (terminal)"
 if [ -f "$ROOT/dotfiles/install.sh" ]; then
     if (cd "$ROOT/dotfiles" && bash install.sh "${KITTY_ARGS[@]}"); then
         SUMMARY+=("✓ kitty instalado e definido como terminal padrão")
@@ -135,7 +150,7 @@ else
 fi
 
 # ---------- 2. tmux ----------
-title "2/3 — tmux"
+title "2/$TOTAL — tmux"
 if [ -f "$ROOT/tmux/install.sh" ]; then
     if (cd "$ROOT/tmux" && bash install.sh); then
         SUMMARY+=("✓ tmux instalado e configurado")
@@ -149,17 +164,37 @@ else
 fi
 
 # ---------- 3. Vim ----------
-title "3/3 — Vim (C++/Java/Python)"
-if [ -f "$ROOT/vim/install.sh" ]; then
-    if (cd "$ROOT/vim" && bash install.sh); then
-        SUMMARY+=("✓ Vim instalado e configurado")
+STEP=3
+if [ "$EDITORS" = "vim" ] || [ "$EDITORS" = "both" ]; then
+    title "$STEP/$TOTAL — Vim (C++/Java/Python)"
+    STEP=$((STEP + 1))
+    if [ -f "$ROOT/vim/install.sh" ]; then
+        if (cd "$ROOT/vim" && bash install.sh); then
+            SUMMARY+=("✓ Vim instalado e configurado")
+        else
+            warn "O instalador do Vim terminou com erro — veja o log acima."
+            SUMMARY+=("x Vim: terminou com erro, veja o log acima")
+        fi
     else
-        warn "O instalador do Vim terminou com erro — veja o log acima."
-        SUMMARY+=("x Vim: terminou com erro, veja o log acima")
+        warn "Não achei vim/install.sh — pulando o Vim."
+        SUMMARY+=("- Vim: pulado (vim/install.sh não encontrado)")
     fi
-else
-    warn "Não achei vim/install.sh — pulando o Vim."
-    SUMMARY+=("- Vim: pulado (vim/install.sh não encontrado)")
+fi
+
+# ---------- 4. Neovim ----------
+if [ "$EDITORS" = "nvim" ] || [ "$EDITORS" = "both" ]; then
+    title "$STEP/$TOTAL — Neovim (C++/Java/Python)"
+    if [ -f "$ROOT/nvim/install.sh" ]; then
+        if (cd "$ROOT/nvim" && bash install.sh); then
+            SUMMARY+=("✓ Neovim instalado e configurado")
+        else
+            warn "O instalador do Neovim terminou com erro — veja o log acima."
+            SUMMARY+=("x Neovim: terminou com erro, veja o log acima")
+        fi
+    else
+        warn "Não achei nvim/install.sh — pulando o Neovim."
+        SUMMARY+=("- Neovim: pulado (nvim/install.sh não encontrado)")
+    fi
 fi
 
 title "Resumo"
@@ -173,6 +208,6 @@ if [ "$ICARO_MODE" = "user" ]; then
     info "algum deles precisou ser baixado) aparecerem no PATH."
 fi
 info "Procure o kitty no menu de aplicativos ou na barra de tarefas — ele já"
-info "deve estar lá fixado. Dentro dele: 'tmux' abre o multiplexador, 'vim'"
-info "abre o editor."
+info "deve estar lá fixado. Dentro dele: 'tmux' abre o multiplexador, 'vim' ou 'nvim'"
+info "abrem o editor."
 echo

@@ -1,12 +1,14 @@
-# Ícaro Lira Setup — kitty + tmux + Vim, tudo de uma vez
+# Ícaro Lira Setup — kitty + tmux + Vim/Neovim, tudo de uma vez
 
-Pacote combinado com os três projetos:
+Pacote combinado com os projetos:
 
 - **[`dotfiles/`](dotfiles)** — kitty (terminal), definido como terminal padrão do sistema e
   fixado na barra de tarefas, + opcionalmente starship/eza/bat/zoxide/fzf
 - **[`tmux/`](tmux)** — configuração de tmux, prefixo `Ctrl+A`
 - **[`vim/`](vim)** — Vim para C++/Java/Python (competitive programming), com autocomplete
   (coc.nvim) individual por linguagem
+- **[`nvim/`](nvim)** — Neovim com os mesmos atalhos, aliases e temas do Vim, mais LSP nativo,
+  Treesitter e interface completa (veja [`nvim/README.md`](nvim/README.md))
 
 Cada um funciona sozinho (tem seu próprio `install.sh`), mas o jeito mais simples é instalar tudo
 de uma vez com o instalador combinado.
@@ -15,7 +17,8 @@ de uma vez com o instalador combinado.
 
 ```bash
 chmod +x install.sh
-./install.sh
+./install.sh                 # menu: Vim, Neovim ou os dois
+./install.sh --editor=nvim   # pula a pergunta do editor
 ```
 
 Isso pergunta **uma única vez** se você tem acesso a sudo e se quer o terminal **translúcido**

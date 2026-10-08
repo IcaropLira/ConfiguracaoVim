@@ -1,0 +1,5 @@
+-- Copie este arquivo para themes_local.lua para registrar temas seus.
+-- O "id" é o nome do colorscheme (arquivo colors/<id>.vim ou .lua no runtimepath).
+return {
+  -- { id = "meu_tema", title = "Meu tema", short = "MEU", subtitle = "feito por mim" },
+}
