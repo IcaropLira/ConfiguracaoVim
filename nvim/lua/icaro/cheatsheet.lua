@@ -13,10 +13,12 @@ local sections = {
     { "F7",        "compilar + executar     (:Br)" },
     { "F8",        "testar com input.txt    (:Ti)" },
     { "F9",        "terminal                (:Te)" },
-    { "F10",       "fecha-pares + assinatura (:Pa)" },
+    { "S-F3/F15",  "dicas de método: assinatura + docs (:Dc)" },
+    { "S-F4/F16",  "avisos/erros do código (:Dg)" },
+    { "F10",       "fecha-pares automático  (:Pa)" },
     { "S-F10",     "destaque de parênteses  (:Mh)" },
     { "S-F11",     "modo silencioso         (:Of)" },
-    { "S-F12/F24", "mostra/esconde o header (:Hd)" },
+    { "S-F12/F24", "mostra/esconde o header  (:Hd)" },
     { "F12",       "esta folha              (:Cs)" },
   } },
   { "GERAL", {
@@ -48,7 +50,8 @@ local sections = {
     { "<leader>xx",  "lista de diagnósticos (Trouble)" },
     { "Tab / S-Tab", "navegar nas sugestões" },
     { "Enter",       "confirmar sugestão" },
-    { "Ctrl+Space",  "abrir sugestões" },
+    { "Ctrl+Space",  "abrir sugestões / ver documentação" },
+    { "Ctrl+K",      "assinatura do método (manual)" },
   } },
   { "GIT", {
     { "]h / [h",       "próximo / anterior hunk" },
@@ -59,6 +62,7 @@ local sections = {
     { ":ThemeList",   "listar e escolher tema" },
     { ":Lazy",        "gerenciar plugins" },
     { ":Mason",       "gerenciar servidores LSP" },
+    { ":LspProgress", "mostra/esconde o progresso do LSP" },
     { ":IcaroDoctor", "diagnóstico da instalação" },
   } },
 }

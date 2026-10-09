@@ -26,9 +26,39 @@ return {
       local winbar_off = { "neo-tree", "dashboard", "icaro-runner", "icaro-cheatsheet", "lazy", "mason",
         "TelescopePrompt", "trouble", "qf", "help", "snacks_dashboard" }
       local file_cond = function() return vim.bo.buftype == "" end
+
+      -- ---- header responsivo ----
+      -- Na captura, a janela estreita cortava o crédito ("Config:") porque tudo disputava a mesma
+      -- linha. Agora o que é opcional (subtítulo do tema, branch) só aparece se SOBRAR espaço,
+      -- e o crédito nunca é cortado.
+      local CREDIT = "Config: Ícaro Lira"
+      local function win_info()
+        local w = vim.g.statusline_winid
+        if not w or w == 0 or not vim.api.nvim_win_is_valid(w) then w = vim.api.nvim_get_current_win() end
+        return vim.api.nvim_win_get_width(w), vim.api.nvim_win_get_buf(w)
+      end
+      local function spare()
+        local width, buf = win_info()
+        local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":~:.")
+        local used = vim.fn.strdisplaywidth(themes.badge()) + math.min(vim.fn.strdisplaywidth(name), 40)
+          + vim.fn.strdisplaywidth(CREDIT) + 22 -- paddings, ícone, "●" e separadores
+        return width - used, buf
+      end
+      local function show_subtitle()
+        local sub = themes.current().subtitle or ""
+        local room = spare()
+        return file_cond() and sub ~= "" and room >= vim.fn.strdisplaywidth(sub) + 4
+      end
+      local function show_branch()
+        if not file_cond() then return false end
+        local room, buf = spare()
+        local sub = themes.current().subtitle or ""
+        if show_subtitle() then room = room - vim.fn.strdisplaywidth(sub) - 4 end
+        return room >= vim.fn.strdisplaywidth(vim.b[buf].gitsigns_head or "main") + 6
+      end
       return {
         options = {
-          theme = "auto",
+          theme = "auto", -- trocado em config() pelo tema gerado (icaro/lualine_theme.lua)
           globalstatus = true,
           component_separators = sep,
           section_separators = sec,
@@ -41,7 +71,7 @@ return {
           lualine_b = {
             { "branch", icon = nf and " " or "git:" },
             { "diff", symbols = nf and { added = " ", modified = " ", removed = " " } or { added = "+", modified = "~", removed = "-" } } },
-          lualine_c = { { "diagnostics", cond = no_quiet,
+          lualine_c = { { "diagnostics", cond = function() return not vim.g.icaro_quiet and toggles.s.diag end,
             symbols = nf and { error = " ", warn = " ", info = " ", hint = "󰌵 " } or { error = "E:", warn = "W:", info = "I:", hint = "H:" } } },
           lualine_x = { { toggles.ac_label, color = function()
             return { fg = (not vim.g.icaro_quiet and toggles.completion_enabled()) and "#7ec16e" or "#d0707a" }
@@ -51,17 +81,40 @@ return {
         },
         winbar = {
           lualine_a = { { function() return themes.badge() end, cond = file_cond } },
-          lualine_b = { { "filename", path = 1, cond = file_cond, symbols = { modified = " ●", readonly = " ", unnamed = "[sem nome]" } } },
-          lualine_c = { { function() return (themes.current().subtitle or "") end, cond = file_cond } },
-          lualine_y = { { "branch", icon = nf and "" or "git:", cond = file_cond } },
-          lualine_z = { { function() return "Config: Ícaro Lira" end, cond = file_cond } },
+          lualine_b = {
+            -- ícone do tipo de arquivo (só com Nerd Font + devicons)
+            { "filetype", icon_only = true, colored = false, padding = { left = 1, right = 0 },
+              cond = function() return nf and file_cond() end },
+            { "filename", path = 1, shorting_target = 40, cond = file_cond,
+              symbols = { modified = " ●", readonly = " ", unnamed = "[sem nome]" } },
+          },
+          lualine_c = { { function() return (themes.current().subtitle or "") end, cond = show_subtitle,
+            color = { gui = "italic" } } },
+          lualine_y = { { "branch", icon = nf and "" or "git:", cond = show_branch } },
+          lualine_z = { { function() return CREDIT end, cond = file_cond } },
         },
         inactive_winbar = {
-          lualine_b = { { "filename", path = 1, cond = file_cond } },
-          lualine_z = { { function() return "Config: Ícaro Lira" end, cond = file_cond } },
+          lualine_b = { { "filename", path = 1, shorting_target = 40, cond = file_cond } },
+          lualine_z = { { function() return CREDIT end, cond = file_cond } },
         },
         extensions = { "neo-tree", "lazy", "mason", "quickfix", "trouble" },
       }
+    end,
+    config = function(_, opts)
+      -- Cores da barra derivadas do tema ativo: o modo Insert vira uma variação da cor
+      -- principal (não mais o verde fixo) e todo texto é checado por contraste.
+      local lt = require("icaro.lualine_theme")
+      local function apply()
+        local o = vim.deepcopy(opts)
+        o.options.theme = lt.build()
+        require("lualine").setup(o)
+        require("icaro.toggles").reapply_header()
+      end
+      apply()
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        group = vim.api.nvim_create_augroup("icaro_lualine_theme", { clear = true }),
+        callback = function() vim.schedule(apply) end,
+      })
     end,
   },
 
@@ -93,11 +146,20 @@ return {
     dependencies = { "MunifTanjim/nui.nvim", "rcarriga/nvim-notify" },
     opts = {
       lsp = {
+        -- O progresso do LSP ("✓ Validate documents jdtls" a cada tecla) fica ESCONDIDO por
+        -- padrão (veja routes abaixo). :LspProgress liga/desliga.
         progress = { enabled = true },
+        -- a assinatura de método é nossa (icaro/signature.lua): compacta e controlada
+        -- pelo Shift+F3. A do noice listava todas as sobrecargas com documentação.
+        signature = { enabled = false },
         override = {
           ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
           ["vim.lsp.util.stylize_markdown"] = true,
         },
+      },
+      routes = {
+        { filter = { event = "lsp", kind = "progress", cond = function() return not vim.g.icaro_lsp_progress end },
+          opts = { skip = true } },
       },
       presets = {
         bottom_search = true,
@@ -120,7 +182,7 @@ return {
   {
     "echasnovski/mini.indentscope",
     version = false,
-    event = { "BufReadPost", "BufNewFile" },
+    event = "VeryLazy",
     opts = {
       symbol = "│",
       draw = { delay = 60, animation = function() return 1 end },
@@ -133,7 +195,9 @@ return {
     "petertriho/nvim-scrollbar",
     event = "VeryLazy",
     opts = {
-      handlers = { cursor = true, diagnostic = true, gitsigns = true, search = true },
+      -- search = false: o handler de busca exige o plugin nvim-hlslens e, sem ele, mostrava
+      -- "[scrollbar.nvim] hlslens module not available" ao abrir arquivos.
+      handlers = { cursor = true, diagnostic = true, gitsigns = true, search = false },
       marks = {
         Cursor = { text = "▎", priority = 0 },
         Search = { text = { "▎", "▎" }, priority = 10 },
@@ -150,7 +214,7 @@ return {
   -- Destaca referências do símbolo sob o cursor.
   {
     "RRethy/vim-illuminate",
-    event = { "BufReadPost", "BufNewFile" },
+    event = "VeryLazy",
     opts = {
       delay = 100,
       large_file_cutoff = 2000,
@@ -168,7 +232,7 @@ return {
   -- TODO/FIXME/NOTE ficam visíveis e pesquisáveis.
   {
     "folke/todo-comments.nvim",
-    event = { "BufReadPost", "BufNewFile" },
+    event = "VeryLazy",
     dependencies = { "nvim-lua/plenary.nvim" },
     opts = {},
   },
@@ -230,7 +294,7 @@ return {
   {
     "lukas-reineke/indent-blankline.nvim",
     main = "ibl",
-    event = { "BufReadPost", "BufNewFile" },
+    event = "VeryLazy",
     opts = { indent = { char = "│", tab_char = "│" }, scope = { show_start = false, show_end = false } },
   },
 
@@ -238,7 +302,7 @@ return {
   {
     "echasnovski/mini.cursorword",
     version = false,
-    event = { "BufReadPost", "BufNewFile" },
+    event = "VeryLazy",
     opts = { delay = 150 },
   },
 
@@ -259,6 +323,8 @@ return {
   {
     "nvimdev/dashboard-nvim",
     event = "VimEnter",
+    -- só carrega a tela inicial se o nvim abrir SEM arquivo (`nvim arquivo.java` pula isso)
+    cond = function() return vim.fn.argc() == 0 end,
     opts = function()
       local header = {
         "",

@@ -214,6 +214,20 @@ function! IcaroFixPopupContrast() abort
     let l:pmenu_bg = synIDattr(synIDtrans(hlID('Pmenu')), 'bg#', 'gui')
     let l:sel_bg = synIDattr(synIDtrans(hlID('PmenuSel')), 'bg#', 'gui')
     let l:coc_bg = synIDattr(synIDtrans(hlID('CocFloating')), 'bg#', 'gui')
+    let l:border = synIDattr(synIDtrans(hlID('WinSeparator')), 'fg#', 'gui')
+    let l:border_cterm = synIDattr(synIDtrans(hlID('WinSeparator')), 'fg', 'cterm')
+    if empty(l:border) || l:border ==# 'NONE'
+        let l:border = '#7c8498'
+    endif
+    if empty(l:border_cterm) || l:border_cterm ==# 'NONE'
+        let l:border_cterm = '8'
+    endif
+
+    " Bordas próprias: evita a moldura preta padrão que parece escapar
+    " dos menus flutuantes em alguns terminais/temas.
+    execute 'hi IcaroPopupBorder guifg=' . l:border . ' ctermfg=' . l:border_cterm . ' guibg=NONE ctermbg=NONE'
+    execute 'hi FloatBorder guifg=' . l:border . ' ctermfg=' . l:border_cterm . ' guibg=NONE ctermbg=NONE'
+    execute 'hi CocFloatingBorder guifg=' . l:border . ' ctermfg=' . l:border_cterm . ' guibg=NONE ctermbg=NONE'
 
     if !empty(l:pmenu_bg)
         call s:SetPopupText('Pmenu', l:pmenu_bg)
@@ -235,11 +249,30 @@ function! IcaroFixPopupContrast() abort
         call s:SetPopupText('CocWarningFloat', l:coc_bg)
         call s:SetPopupText('CocInfoFloat', l:coc_bg)
     endif
+
+    " Tree-sitter/LSP podem aplicar grupos próprios depois do colorscheme.
+    " Reforça a cor de variáveis a partir do foreground de Normal, evitando
+    " variáveis brancas em paletas claras como GVSL.
+    let l:nfg = synIDattr(synIDtrans(hlID('Normal')), 'fg#', 'gui')
+    let l:nfgc = synIDattr(synIDtrans(hlID('Normal')), 'fg', 'cterm')
+    if empty(l:nfg) || l:nfg ==# 'NONE'
+        let l:nfg = '#29251b'
+    endif
+    if empty(l:nfgc) || l:nfgc ==# 'NONE'
+        let l:nfgc = '0'
+    endif
+    for l:group in ['Identifier', '@variable', '@variable.builtin', '@variable.parameter', '@variable.member', '@lsp.type.variable', '@lsp.type.parameter', '@lsp.type.property', 'CocSemVariable', 'CocSemParameter', 'CocSemProperty']
+        execute 'hi ' . l:group . ' guifg=' . l:nfg . ' ctermfg=' . l:nfgc . ' gui=NONE cterm=NONE'
+    endfor
+    " Grupos de sintaxe com cor própria continuam coloridos, mas tipos de
+    " identificador/variável nunca herdam branco puro em temas claros.
+    execute 'hi @lsp.typemod.variable.readonly guifg=' . l:nfg . ' ctermfg=' . l:nfgc . ' gui=bold cterm=bold'
 endfunction
 
 augroup icaro_popup_contrast
     autocmd!
     autocmd ColorScheme * call IcaroFixPopupContrast()
+    autocmd User CocNvimInit call IcaroFixPopupContrast()
 augroup END
 call IcaroFixPopupContrast()
 

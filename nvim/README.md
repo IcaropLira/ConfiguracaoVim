@@ -28,13 +28,17 @@ Depois: abra `nvim`, aperte **F12** para ver todos os atalhos e rode `:IcaroDoct
 | `F7` | `:Br` | compilar + executar (Python: salvar + executar) |
 | `F8` | `:Ti` | executar com `input.txt` |
 | `F9` | `:Te` | terminal |
-| `F10` | `:Pa` | fecha-pares + assinatura de método |
+| `Shift+F3` / `F15` | `:Dc` | **dicas de método**: popup de assinatura (uma linha, compacto) + documentação ao lado das sugestões. **Começa desligado** |
+| `Shift+F4` / `F16` | `:Dg` | mostra/esconde **avisos e erros do código** (texto na linha, sublinhado, sinais) |
+| `F10` | `:Pa` | fecha-pares automático |
 | `Shift+F10` | `:Mh` | destaque do par de parênteses |
 | `Shift+F11` | `:Of` | **modo silencioso** |
 | `Shift+F12` / `F24` | `:Hd` | mostra/esconde o header |
 | `F12` | `:Cs` | folha de atalhos |
 
-**Modo silencioso (`Shift+F11`)**: fecha popups e floats, desliga sugestões, assinatura, inlay hints, pares automáticos, diagnósticos (sinais, virtual text, sublinhado) e matchparen. Apertando de novo, **restaura exatamente os estados anteriores**.
+**Modo silencioso (`Shift+F11`)**: fecha popups e floats, desliga sugestões, dicas de método, inlay hints, pares automáticos, diagnósticos (sinais, virtual text, sublinhado) e matchparen. Apertando de novo, **restaura exatamente os estados anteriores**.
+
+`Ctrl+K` (insert) e `<leader>s` mostram a assinatura do método sob demanda, mesmo com as dicas desligadas. `:LspProgress` mostra/esconde as mensagens de progresso do LSP ("Validate documents jdtls"), escondidas por padrão.
 
 **F5–F8**: o programa roda num terminal embutido. Enquanto ele executa, `Enter` vai para o `stdin`; depois que termina, `Enter` (ou `q`) fecha o terminal.
 
@@ -53,6 +57,12 @@ Outros: `Ctrl+S` salva, `Ctrl+H/J/K/L` navega entre janelas, `Tab`/`Shift+Tab` t
 - **mini.indentscope** para destacar visualmente o bloco atual, **nvim-scrollbar** com diagnóstico/git/busca, **vim-illuminate** para referências e **todo-comments** para TODO/FIXME/NOTE.
 - **6 temas extras** de plugins (Tokyo Night, Catppuccin, Kanagawa, Rosé Pine, Nightfox, Carbonfox), carregados só quando você chega neles com `F1`.
 - Templates automáticos de `.cpp`, `.java` e `_cp.java`, igual ao Vim.
+- **Visual coerente com o tema** (`lua/icaro/polish.lua`), reaplicado a cada troca de tema, quando um LSP conecta e na 1ª abertura do menu de completion:
+  - **popups** (completion, documentação, assinatura, Telescope, which-key, cmdline do Noice): borda na cor de destaque do tema e **o mesmo fundo do conteúdo**, sem o contorno preto escapando da janela;
+  - **menu do blink.cmp**: menu, linha selecionada, trecho casado e informações complementares (detalhe, descrição, fonte) conferidos por contraste nos dois fundos;
+  - **contraste de variáveis, parâmetros e propriedades** nos grupos clássicos, Tree-sitter (`@variable*`, `@property`) e LSP (`@lsp.type.*`): a cor do tema é mantida e só é ajustada se ficar abaixo de 4.5:1;
+  - **GVSL**: ajustes próprios para a paleta clara (acentos, comentários, `cin`/`cout`, inlay hints e seleção do menu).
+- **Header responsivo**: ícone do tipo de arquivo; subtítulo do tema e branch só aparecem se sobrar espaço, e o crédito nunca é cortado em janela estreita. Os blocos formam uma escada de 3 tons (principal, médio, fundo) e o bloco da direita ganha um tom irmão do principal.
 
 ## Personalizar
 
@@ -69,7 +79,10 @@ nvim/
 └── lua/icaro/
     ├── core.lua        liga tudo (F-keys, aliases)
     ├── themes.lua      F1 / Shift+F1, catálogo, polimento de cores
-    ├── toggles.lua     F3 F4 F10 Shift+F10/F11/F12 e o modo silencioso
+    ├── toggles.lua     F3 F4 F10 Shift+F3/F4/F10/F11/F12 e o modo silencioso
+    ├── signature.lua   popup de assinatura compacto (Shift+F3)
+    ├── lualine_theme.lua  cores da barra geradas a partir do tema (Insert = variação da cor principal)
+    ├── polish.lua      popups, menu do blink, contraste de variáveis e ajustes do GVSL
     ├── runner.lua      F5–F8, terminal, templates
     ├── cheatsheet.lua  F12
     ├── lsp.lua         servidores e atalhos de LSP

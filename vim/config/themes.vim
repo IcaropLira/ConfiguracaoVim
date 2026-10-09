@@ -193,7 +193,7 @@ function! s:ShowThemePopup() abort
               \ 'border': [1, 1, 1, 1],
               \ 'padding': [0, 2, 0, 2],
               \ 'highlight': 'PmenuSel',
-              \ 'borderhighlight': ['PmenuSel'],
+              \ 'borderhighlight': ['IcaroPopupBorder'],
               \ 'zindex': 300,
               \ })
     else
@@ -358,7 +358,7 @@ function! ThemeList() abort
               \ 'border': [1, 1, 1, 1],
               \ 'padding': [0, 1, 0, 1],
               \ 'highlight': 'Pmenu',
-              \ 'borderhighlight': ['PmenuSel'],
+              \ 'borderhighlight': ['IcaroPopupBorder'],
               \ 'zindex': 300,
               \ 'maxheight': &lines - 4,
               \ 'scrollbar': 1,

@@ -24,7 +24,18 @@ return {
         -- não pré-seleciona: Enter só confirma se você escolheu algo (Tab navega)
         list = { selection = { preselect = false, auto_insert = false } },
         menu = { border = "rounded", draw = { treesitter = { "lsp" } } },
-        documentation = { auto_show = true, auto_show_delay_ms = 250, window = { border = "rounded" } },
+        -- Janela de documentação ao lado das sugestões: só automática com as "dicas" ligadas
+        -- (Shift+F3; começa desligada). Desligada, Ctrl+Space ainda abre sob demanda. Ligada, fica discreta:
+        -- atraso maior e tamanho limitado pela largura da tela.
+        documentation = {
+          auto_show = require("icaro.state").get("hints", false), -- Shift+F3 muda em tempo real (toggles.lua)
+          auto_show_delay_ms = 400,
+          window = {
+            border = "rounded",
+            max_width = math.max(40, math.min(70, math.floor(vim.o.columns * 0.4))),
+            max_height = 12,
+          },
+        },
         ghost_text = { enabled = false },
         accept = { auto_brackets = { enabled = true } },
       },

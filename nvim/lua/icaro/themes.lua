@@ -65,6 +65,7 @@ local function polish()
   ensure("LspReferenceRead", "LspReferenceText")
   ensure("LspReferenceWrite", "LspReferenceText")
   ensure("LspInlayHint", "Comment")
+  ensure("LspSignatureActiveParameter", "Visual")
   ensure("WinSeparator", "VertSplit")
   -- treesitter: liga os grupos @ aos grupos clássicos que o tema já pintou
   local map = {
@@ -80,7 +81,8 @@ local function polish()
     ["@constant"] = "Constant", ["@constant.builtin"] = "Constant", ["@macro"] = "Macro",
     ["@label"] = "Label", ["@attribute"] = "PreProc", ["@tag"] = "Tag",
     ["@lsp.type.class"] = "Type", ["@lsp.type.interface"] = "Type", ["@lsp.type.enum"] = "Type",
-    ["@lsp.type.parameter"] = "Identifier", ["@lsp.type.property"] = "Identifier",
+    ["@lsp.type.parameter"] = "@variable.parameter", ["@lsp.type.property"] = "@property",
+    ["@variable.member"] = "@property",
   }
   for g, l in pairs(map) do ensure(g, l) end
   -- menus de completion
@@ -105,6 +107,10 @@ local function polish()
   ensure("IblScope", "Special")
   ensure("MiniCursorword", "Visual")
   ensure("MiniCursorwordCurrent", "Visual")
+
+  -- Por último: bordas/fundos dos popups, menu do blink, contraste de variáveis e ajustes do GVSL
+  -- (icaro/polish.lua). Roda DEPOIS dos `ensure` acima porque usa as cores já resolvidas.
+  require("icaro.polish").apply()
 end
 
 local function announce()
@@ -145,10 +151,13 @@ function M.setup()
       local i = by_id[ev.match]
       if i then M.index = i; state.set("theme", ev.match) end
       polish()
+      -- 2ª passada: plugins (blink, noice, telescope...) também reagem ao ColorScheme
+      vim.schedule(function() require("icaro.polish").apply() end)
     end,
   })
   M.apply_saved()
   polish()
+  require("icaro.polish").setup() -- LspAttach / VeryLazy / 1º menu do blink
 end
 
 function M.pick()

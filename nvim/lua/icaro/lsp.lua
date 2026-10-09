@@ -35,13 +35,23 @@ local packages = {
 
 M.packages = packages
 
+-- executável que cada servidor precisa
+local exe = { clangd = "clangd", pyright = "pyright-langserver", jdtls = "jdtls" }
+
+-- Os binários instalados pelo Mason ficam aqui. Colocamos no PATH já na abertura, SEM
+-- carregar o Mason (que é pesado e baixava o registro do GitHub a cada abertura).
+local mason_bin = vim.fn.stdpath("data") .. "/mason/bin"
+if vim.fn.isdirectory(mason_bin) == 1 and not vim.env.PATH:find(mason_bin, 1, true) then
+  vim.env.PATH = mason_bin .. (vim.fn.has("win32") == 1 and ";" or ":") .. vim.env.PATH
+end
+local function have(server) return vim.fn.executable(exe[server]) == 1 end
+
 -- Devolve a lista de pacotes do Mason que ainda valem a pena instalar.
 function M.missing(reg)
   local list = {}
   for server, info in pairs(packages) do
     -- se já existe no sistema (apt etc.) ou no Mason, não baixa de novo
-    local has = vim.fn.executable(server == "pyright" and "pyright-langserver" or server) == 1
-    if not has and info.ok() then
+    if not have(server) and info.ok() then
       local gok, pkg = pcall(reg.get_package, info.pkg)
       if gok and not pkg:is_installed() then list[#list + 1] = pkg end
     end
@@ -49,14 +59,27 @@ function M.missing(reg)
   return list
 end
 
-function M.ensure_installed()
+-- Só mexe no Mason se REALMENTE faltar algum servidor instalável, e no máximo 1x a cada
+-- 12h (sem internet/lab bloqueado: não fica tentando a cada abertura).
+function M.ensure_installed(on_installed)
+  local need = false
+  for server, info in pairs(packages) do
+    if not have(server) and info.ok() then need = true end
+  end
+  if not need then return end
+  local state = require("icaro.state")
+  if os.time() - state.get("mason_try", 0) < 12 * 3600 then return end
+  state.set("mason_try", os.time())
+
   local ok, reg = pcall(require, "mason-registry")
   if not ok then return end
   reg.refresh(function(success)
-    if not success then return end -- sem internet / limite da API do GitHub: tenta de novo na próxima vez
+    if not success then return end -- sem internet / limite da API do GitHub: tenta de novo mais tarde
     for _, pkg in ipairs(M.missing(reg)) do
       vim.schedule(function() vim.notify("Mason: instalando " .. pkg.name .. "…", vim.log.levels.INFO) end)
-      pkg:install()
+      pkg:install():once("closed", function()
+        if on_installed then vim.schedule(function() on_installed(pkg.name) end) end
+      end)
     end
   end)
 end
@@ -72,10 +95,15 @@ local function on_attach(client, bufnr)
   m("n", "<leader>rn", vim.lsp.buf.rename, "Renomear")
   m({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Ações de código")
   m("n", "<leader>f", function() vim.lsp.buf.format({ async = true }) end, "Formatar")
-  m("n", "[d", function() vim.diagnostic.jump({ count = -1, float = true }) end, "Diagnóstico anterior")
-  m("n", "]d", function() vim.diagnostic.jump({ count = 1, float = true }) end, "Próximo diagnóstico")
-  m("i", "<C-k>", vim.lsp.buf.signature_help, "Assinatura")
-  m("n", "<leader>s", vim.lsp.buf.signature_help, "Assinatura do método")
+  -- vim.diagnostic.jump só existe no Neovim 0.11+; na 0.10 usa goto_prev/goto_next
+  local function jump(n)
+    if vim.diagnostic.jump then vim.diagnostic.jump({ count = n, float = true })
+    else (n < 0 and vim.diagnostic.goto_prev or vim.diagnostic.goto_next)({ float = true }) end
+  end
+  m("n", "[d", function() jump(-1) end, "Diagnóstico anterior")
+  m("n", "]d", function() jump(1) end, "Próximo diagnóstico")
+  m("i", "<C-k>", function() require("icaro.signature").show(true) end, "Assinatura (compacta)")
+  m("n", "<leader>s", function() require("icaro.signature").show(true) end, "Assinatura do método")
   m("n", "<leader>oi", function()
     vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" }, diagnostics = {} }, apply = true })
   end, "Organizar imports")
@@ -117,11 +145,13 @@ function M.setup()
     for name, cfg in pairs(servers) do
       cfg.capabilities = caps
       vim.lsp.config(name, cfg)
-      vim.lsp.enable(name)
+      -- só liga se o servidor existe (senão aparecia erro "failed to spawn" a cada arquivo)
+      if have(name) then vim.lsp.enable(name) end
     end
   else -- Neovim 0.10
     local lspconfig = require("lspconfig")
     for name, cfg in pairs(servers) do
+      if not have(name) then goto continue end
       cfg = vim.deepcopy(cfg)
       cfg.capabilities = caps
       if name == "jdtls" then
@@ -131,10 +161,20 @@ function M.setup()
         end
       end
       lspconfig[name].setup(cfg)
+      ::continue::
     end
   end
 
-  M.ensure_installed()
+  -- depois que o Mason instalar um servidor, liga ele na hora (sem reabrir o nvim)
+  M.ensure_installed(function(pkg_name)
+    for name, info in pairs(packages) do
+      if info.pkg == pkg_name and have(name) then
+        if vim.lsp.enable and vim.lsp.config then vim.lsp.enable(name)
+        else pcall(function() require("lspconfig")[name].setup({ capabilities = caps }) end) end
+        vim.cmd("silent! doautoall FileType")
+      end
+    end
+  end)
 end
 
 return M
