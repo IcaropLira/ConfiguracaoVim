@@ -6,11 +6,13 @@ function M.setup()
   local toggles = require("icaro.toggles")
   local runner = require("icaro.runner")
   local cheat = require("icaro.cheatsheet")
+  local settings = require("icaro.settings")
 
   -- ---------- temas ----------
   -- depois do lazy: o :colorscheme dos extras dispara o carregamento do plugin
   themes.setup()
   toggles.setup()
+  settings.setup()
   runner.setup_templates()
 
   -- ---------- atalhos de função (n + i) ----------
@@ -50,7 +52,7 @@ function M.setup()
     { "<S-F9>", "<F21>", runner.terminal, "Terminal (alternativo)" },
     { "<S-F10>", "<F22>", toggles.matchparen, "Matchparen" },
     { "<S-F11>", "<F23>", toggles.quiet, "Modo silencioso" },
-    { "<S-F12>", "<F24>", toggles.header, "Header" },
+    { "<S-F12>", "<F24>", require("icaro.settings").open, "Central de configurações (abrir/fechar)" },
   }
 
   for _, item in ipairs(shifted) do

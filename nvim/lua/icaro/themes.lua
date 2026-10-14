@@ -8,12 +8,12 @@ M.list = vim.deepcopy(require("icaro.catalog"))
 
 -- Temas extras (plugins). O id é o nome do :colorscheme.
 local extras = {
-  { id = "tokyonight-night", title = "Tokyo Night",     short = "TKY", subtitle = "Extra (plugin)" },
-  { id = "catppuccin-mocha", title = "Catppuccin Mocha", short = "CAT", subtitle = "Extra (plugin)" },
-  { id = "kanagawa",         title = "Kanagawa",        short = "KAN", subtitle = "Extra (plugin)" },
-  { id = "rose-pine",        title = "Rosé Pine",       short = "ROS", subtitle = "Extra (plugin)" },
-  { id = "nightfox",         title = "Nightfox",        short = "NIG", subtitle = "Extra (plugin)" },
-  { id = "carbonfox",        title = "Carbonfox",       short = "CRB", subtitle = "Extra (plugin)" },
+  { id = "tokyonight-night", title = "EULLER D. NOBREGA",     short = "EDN", subtitle = "Banco de Mãe Joana+" },
+  { id = "c", title = "PKJ Master", short = "PKJ", subtitle = "AA" },
+  { id = "kanagawa",         title = "Trompete",        short = "TRO", subtitle = "AA" },
+  { id = "rose-pine",        title = "o do LOL",       short = "LOL", subtitle = "AA" },
+  { id = "nightfox",         title = "Protegido",        short = "MAX", subtitle = "AA" },
+  { id = "carbonfox",        title = "POR MIM",       short = "MIM", subtitle = "AA" },
 }
 for _, e in ipairs(extras) do M.list[#M.list + 1] = e end
 

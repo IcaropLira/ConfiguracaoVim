@@ -33,7 +33,8 @@ Depois: abra `nvim`, aperte **F12** para ver todos os atalhos e rode `:IcaroDoct
 | `F10` | `:Pa` | fecha-pares automático |
 | `Shift+F10` | `:Mh` | destaque do par de parênteses |
 | `Shift+F11` | `:Of` | **modo silencioso** |
-| `Shift+F12` / `F24` | `:Hd` | mostra/esconde o header |
+| `Shift+F12` / `F24` | `:ConfigMenu` | abre/fecha a central de configurações |
+| — | `:Hd` | mostra/esconde o header |
 | `F12` | `:Cs` | folha de atalhos |
 
 **Modo silencioso (`Shift+F11`)**: fecha popups e floats, desliga sugestões, dicas de método, inlay hints, pares automáticos, diagnósticos (sinais, virtual text, sublinhado) e matchparen. Apertando de novo, **restaura exatamente os estados anteriores**.
@@ -111,3 +112,16 @@ A configuração agora usa a API correta do `vim-illuminate` (`configure()` em v
 `attempt to call field 'setup' (a nil value)`
 
 Também foram adicionados pequenos refinamentos visuais (cursorword, animações discretas, scrollbar/indentação e highlights de janela).
+
+
+## Central de configurações
+
+Use `Shift+F12` para abrir/fechar a central interativa RF. Também funciona com `:ConfigMenu`, `<F24>` (compatibilidade de terminal) ou `<Space>uc`. Dentro do menu, use `j/k` ou as setas para navegar, `Enter`/`Espaço` para selecionar/alternar, `h` para voltar e `q`/`Esc` para fechar. Valores com múltiplas opções avançam a cada Enter.
+Ela reúne a seleção de temas, os recursos que já tinham atalhos de ligar/desligar e
+preferências gerais do editor (números, linha atual, quebra de linha, contexto vertical,
+coluna de sinais, cores 24-bit, modo e correção ortográfica). As preferências ficam
+salvas entre sessões em `stdpath("state")/icaro.json`.
+
+Os atalhos antigos continuam disponíveis. `:ConfigReset` restaura apenas as preferências
+gerais do editor; não remove temas nem redefine os estados dos recursos existentes.
+A opção Nerd Font salva a preferência para a próxima inicialização.
